@@ -490,9 +490,8 @@ class lib_joyn(Singleton):
 							                                                           return_final_url=True,
 							                                                           no_cache=True)
 
-							from re import search as re_search
-							match = re_search('([a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12})', login_url)
-							login_res_url, login_res_response = request_helper.get_url(url=sso_resp.get('web-login')[:sso_resp.get('web-login').find('?')] + '/' + match.group(1),
+							login_res_parsed = urlparse(login_res_url)
+							login_res_url, login_res_response = request_helper.get_url(url=sso_resp.get('web-login')[:sso_resp.get('web-login').find('?')] + '/' + login_res_parsed.path.split('/')[1],
 							                                                           config=self.config,
 							                                                           cookie_file=cookie_file,
 							                                                           return_final_url=True,

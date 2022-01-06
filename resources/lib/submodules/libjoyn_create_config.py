@@ -4,7 +4,8 @@ from xbmc import getCondVisibility
 from sys import exit
 from copy import deepcopy
 from base64 import b64decode
-from re import findall
+from re import findall, search, sub
+from json import loads
 from ..const import CONST
 from ..xbmc_helper import xbmc_helper
 from .. import compat
@@ -22,10 +23,6 @@ def create_config(cached_config, addon_version):
 	use_outdated_cached_config = False
 
 	config = {
-	        'PSF_CONFIG': {},
-	        'PLAYER_CONFIG': {},
-	        'PSF_VARS': {},
-	        'PSF_CLIENT_CONFIG': None,
 	        'IS_ANDROID': False,
 	        'IS_ARM': False,
 	        'ADDON_VERSION': addon_version,
@@ -40,27 +37,24 @@ def create_config(cached_config, addon_version):
 		os_uname = ['Linux', 'hostname', 'kernel-ver', 'kernel-sub-ver', 'x86_64']
 
 	# android
+	user_agent_suffix = 'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Mobile Safari/537.36'
 	if getCondVisibility('System.Platform.Android'):
-		config['USER_AGENT'] = compat._format(
-		        'Mozilla/5.0 (Linux; Android {}; {} Build/{} AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.73 Mobile Safari/537.36)',
-		        xbmc_helper().get_android_prop('ro.build.version.release', True) or '8.1.0',
-		        xbmc_helper().get_android_prop('ro.product.model', True) or 'Nexus 6P Build',
-		        xbmc_helper().get_android_prop('ro.build.id', True) or 'OPM6.171019.030.B1')
+		config['USER_AGENT'] = compat._format('Mozilla/5.0 (Linux; Android {}; {}) {}',
+		        xbmc_helper().get_android_prop('ro.build.version.release', True) or '12',
+		        xbmc_helper().get_android_prop('ro.product.model', True) or 'Pixel 6',
+		        user_agent_suffix)
 		config['IS_ANDROID'] = True
 
 	# linux on arm uses widevine from chromeos
 	elif os_uname[0] == 'Linux' and os_uname[4].lower().find('arm') != -1:
-		config['USER_AGENT'] = compat._format(
-		        'Mozilla/5.0 (X11; CrOS {}) 12105.100.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.144 Safari/537.36',
-		        os_uname[4])
+		config['USER_AGENT'] = compat._format('Mozilla/5.0 (X11; CrOS {} 14268.67.0) {}', os_uname[4], user_agent_suffix)
 		config['IS_ARM'] = True
 	elif os_uname[0] == 'Linux':
-		config['USER_AGENT'] = compat._format(
-		        'Mozilla/5.0 (X11; Linux {}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36', os_uname[4])
+		config['USER_AGENT'] = compat._format('Mozilla/5.0 (X11; Linux {}) {}', os_uname[4], user_agent_suffix)
 	elif os_uname[0] == 'Darwin':
-		config['USER_AGENT'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36'
+		config['USER_AGENT'] = compat._format('Mozilla/5.0 (Macintosh; Intel Mac OS X 12_1) {}', user_agent_suffix)
 	else:
-		config['USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36'
+		config['USER_AGENT'] = compat._format('Mozilla/5.0 (Windows NT 10.0; Win64; x64) {}', user_agent_suffix)
 
 	html_content = request_helper.get_url(CONST['BASE_URL'], config)
 	if html_content is None or html_content == '':
@@ -137,35 +131,42 @@ def create_config(cached_config, addon_version):
 		found_configs = 0
 		do_break = False
 		for match in preload_scripts:
-			if match.find('buildManifest') != -1:
+			if match.find('webpack') != -1:
 				if not match.startswith('http'):
 					match = urljoin(CONST['BASE_URL'], match)
-				mainfest_js = request_helper.get_url(match, config)
-				for manifest_match in reversed(findall('(static\/chunks.*?\.js)', mainfest_js)):
-					if '[' in manifest_match or ']' in manifest_match:
-						continue
-					js_src = manifest_match.encode().decode('unicode-escape')
-					if js_src.find('[') == -1 and js_src.find(']') == -1:
+				webpack_js = request_helper.get_url(match, config)
+				webpack_match = search('\+\"\.\"\+(.*?})', webpack_js)
+				if webpack_match:
+					webpack_json = loads(sub(r'\b([0-9]+):("[^"]+"[,\n}])', r'"\1":\2', webpack_match.group(1)))
+					entitlementBaseUrl, playbackSourceApiBaseUrl = None, None
+					for key, value in webpack_json.items():
 						try:
-							chunks_src = compat._format('{}://{}{}{}', parsed_preload_js_url.scheme, parsed_preload_js_url.netloc,
-							                            parsed_preload_js_url.path.split(js_src.split('/')[0])[0], js_src)
+							chunks_src = compat._format('{}/{}.{}.js', match.rsplit('/', 1)[0], key, value)
 							chunks_js = request_helper.get_url(chunks_src, config)
-							for config_key, config_regex in CONST.get('CHUNKS_JS_CONFIGS').items():
-								matches = findall(config_regex, chunks_js)
-								if len(matches) == 1:
-									config[config_key] = matches[0]
+
+							if not entitlementBaseUrl:
+								entitlementBaseUrl = search('entitlementBaseUrl.*?"([^"]*)', chunks_js)
+								if entitlementBaseUrl:
+									config['entitlementBaseUrl'] = entitlementBaseUrl.group(1)
 									found_configs += 1
-									if found_configs == len(CONST.get('CHUNKS_JS_CONFIGS')):
-										do_break = True
+
+							if not playbackSourceApiBaseUrl:
+								playbackSourceApiBaseUrl = search('playbackSourceApiBaseUrl.*?"([^"]*)', chunks_js)
+								if playbackSourceApiBaseUrl:
+									config['playbackSourceApiBaseUrl'] = playbackSourceApiBaseUrl.group(1)
+									found_configs += 1
+
+							if entitlementBaseUrl and playbackSourceApiBaseUrl:
+								do_break = True
 						except Exception as e:
 							xbmc_helper().log_notice('Failed to load url: {} with exception {}', chunks_src, e)
 							pass
-					if do_break:
-						break
+						if do_break:
+							break
 			if do_break:
 				break
 
-		if found_configs < len(CONST.get('CHUNKS_JS_CONFIGS')):
+		if found_configs != 2:
 			use_outdated_cached_config = True
 
 	if use_outdated_cached_config is False:
@@ -174,20 +175,8 @@ def create_config(cached_config, addon_version):
 
 	config['CLIENT_NAME'] = xbmc_helper().get_text_setting('joyn_platform')
 
-	if use_outdated_cached_config is False:
-		config['PLAYER_CONFIG'] = request_helper.get_json_response(url=config['PLAYERCONFIG_URL'], config=config)
-		if config['PLAYER_CONFIG'] is None:
-			use_outdated_cached_config = True
-			xbmc_helper().log_error('Could not load player config from url {}', config['PLAYERCONFIG_URL'])
-
-	if use_outdated_cached_config is False:
-		config['PSF_CONFIG'] = request_helper.get_json_response(url=CONST['PSF_CONFIG_URL'], config=config)
-		if config['PSF_CONFIG'] is None:
-			use_outdated_cached_config = True
-			xbmc_helper().log_error('Could not load psf config from url  {}', CONST['PSF_CONFIG_URL'])
-
 	if use_outdated_cached_config is True:
-		if cached_config is not None and isinstance(cached_config, dict) and 'PSF_CLIENT_CONFIG' in cached_config.keys():
+		if cached_config is not None and isinstance(cached_config, dict):
 			xbmc_helper().log_notice('!!!Using outdated cached config - from addon version {} !!!',
 			                         cached_config.get('ADDON_VERSION', '[UNKNOWN]'))
 			_config = deepcopy(cached_config)

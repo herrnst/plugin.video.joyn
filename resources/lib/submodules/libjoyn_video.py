@@ -120,12 +120,10 @@ def get_entitlement_data(video_id, stream_type, pin_required=False, invalid_pin=
 			else:
 				return get_entitlement_data(video_id=video_id, stream_type=stream_type, pin_required=pin_required, invalid_pin=True)
 
-	entitlement_request_headers = [('x-api-key', lib_joyn().config['PSF_CONFIG']['default'][stream_type.lower()]['apiGatewayKey'])]
-
-	entitlement_request_headers.append(('Authorization', lib_joyn().get_access_token(force_refresh=force_refresh_token)))
+	entitlement_request_headers = [('Authorization', lib_joyn().get_access_token(force_refresh=force_refresh_token))]
 	entitlement_response = post_json(url=compat._format(
-	        '{}{}',
-	        lib_joyn().config['PSF_CONFIG']['default'][stream_type.lower()]['entitlementBaseUrl'], CONST['ENTITLEMENT_URL']),
+	        '{}/{}',
+	        lib_joyn().config['entitlementBaseUrl'], CONST['ENTITLEMENT_URL']),
 	                                 config=lib_joyn().config,
 	                                 data=entitlement_request_data,
 	                                 additional_headers=entitlement_request_headers,
@@ -158,8 +156,8 @@ def get_video_data(video_id, client_data, stream_type, season_id=None, compilati
 
 	from ..request_helper import base64_encode_urlsafe
 
-	video_url = compat._format('{}playout/{}/{}',
-	                           lib_joyn().config['PSF_CONFIG']['default'][stream_type.lower()]['playoutBaseUrl'],
+	video_url = compat._format('{}/playout/{}/{}',
+	                           lib_joyn().config['playbackSourceApiBaseUrl'],
 	                           'channel' if stream_type == 'LIVE' else 'video', video_id)
 	xbmc_helper().log_debug('get_video_data: video url: {} - client data {}', video_url, client_data)
 

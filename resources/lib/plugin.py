@@ -580,7 +580,6 @@ def play_video(video_id, client_data, stream_type, season_id=None, compilation_i
 		if parser is not None:
 
 			list_item.setContentLookup(False)
-			list_item.setProperty('inputstreamaddon', CONST['INPUTSTREAM_ADDON'])
 			list_item.setProperty('inputstream', CONST['INPUTSTREAM_ADDON'])
 			# DASH
 			if isinstance(parser, mpd_parser):

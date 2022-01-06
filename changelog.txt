@@ -140,3 +140,5 @@ fixed config init
 v2.95.3.8
 fix compat with python 3.9+
 fixed login
+v2.95.4.0
+fixed config init

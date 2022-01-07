@@ -6,6 +6,7 @@ from copy import deepcopy
 from base64 import b64decode
 from re import findall, search, sub
 from json import loads
+from collections import OrderedDict
 from ..const import CONST
 from ..xbmc_helper import xbmc_helper
 from .. import compat
@@ -137,26 +138,25 @@ def create_config(cached_config, addon_version):
 				webpack_js = request_helper.get_url(match, config)
 				webpack_match = search('\+\"\.\"\+(.*?})', webpack_js)
 				if webpack_match:
-					webpack_json = loads(sub(r'\b([0-9]+):("[^"]+"[,\n}])', r'"\1":\2', webpack_match.group(1)))
-					entitlementBaseUrl, playbackSourceApiBaseUrl = None, None
+					webpack_json = loads(sub(r'\b([0-9]+):("[^"]+"[,\n}])', r'"\1":\2', webpack_match.group(1)), object_pairs_hook=OrderedDict)
 					for key, value in webpack_json.items():
 						try:
 							chunks_src = compat._format('{}/{}.{}.js', match.rsplit('/', 1)[0], key, value)
 							chunks_js = request_helper.get_url(chunks_src, config)
 
-							if not entitlementBaseUrl:
+							if not 'entitlementBaseUrl' in config:
 								entitlementBaseUrl = search('entitlementBaseUrl.*?"([^"]*)', chunks_js)
-								if entitlementBaseUrl:
+								if entitlementBaseUrl and entitlementBaseUrl.group(1).startswith('http'):
 									config['entitlementBaseUrl'] = entitlementBaseUrl.group(1)
 									found_configs += 1
 
-							if not playbackSourceApiBaseUrl:
+							if not 'playbackSourceApiBaseUrl' in config:
 								playbackSourceApiBaseUrl = search('playbackSourceApiBaseUrl.*?"([^"]*)', chunks_js)
-								if playbackSourceApiBaseUrl:
+								if playbackSourceApiBaseUrl and playbackSourceApiBaseUrl.group(1).startswith('http'):
 									config['playbackSourceApiBaseUrl'] = playbackSourceApiBaseUrl.group(1)
 									found_configs += 1
 
-							if entitlementBaseUrl and playbackSourceApiBaseUrl:
+							if 'entitlementBaseUrl' in config and 'playbackSourceApiBaseUrl' in config:
 								do_break = True
 						except Exception as e:
 							xbmc_helper().log_notice('Failed to load url: {} with exception {}', chunks_src, e)

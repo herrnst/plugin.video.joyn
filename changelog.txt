@@ -142,3 +142,5 @@ fix compat with python 3.9+
 fixed login
 v2.95.4.0
 fixed config init
+v2.95.4.1
+fixed config init on some devices

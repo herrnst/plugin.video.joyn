@@ -13,7 +13,7 @@ CONST = {
         'OAUTH_URL': 'https://www.joyn.de/oauth',
         'CLIENT_NAMES': ['web', 'ios', 'android'],
         'EDGE_UA': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.75 Safari/537.36',
-        'JOYN_CLIENT_VERSION': '2.3.5',
+        'JOYN_CLIENT_VERSION': '5.277.26',
         'MAX_VIDEO_TRIES': 5,
         'MPD_FILTER': '%28type%3D%3D%22video%22%29%7C%7C%28true%29',
         'SIGNATURE_KEY': 'MzU0MzM3MzgzMzM4MzMzNjM1NDMzNzM4MzYzNDM2MzYzNTQzMz'\
@@ -267,7 +267,12 @@ CONST = {
                 'TEXTS': {'title': 'title'},
                 'ART': {
                     'logo': {
-                        'BRAND_LOGO': {
+                        'icon': 'profile:nextgen-web-artlogo-183x75',
+                        'thumb': 'profile:original',
+                        'clearlogo': 'profile:nextgen-web-artlogo-183x75',
+                    },
+                    'brand': {
+                        'logo': {
                             'icon': 'profile:nextgen-web-artlogo-183x75',
                             'thumb': 'profile:original',
                             'clearlogo': 'profile:nextgen-web-artlogo-183x75',
@@ -279,44 +284,41 @@ CONST = {
             'TVSHOW': {
                 'TEXTS': {'title': 'title', 'description': 'plot'},
                 'ART': {
-                    'images': {
-                        'PRIMARY': {
-                            'thumb': 'profile:original'
-                        },
-                        'ART_LOGO': {
-                            'icon': 'profile:nextgen-web-artlogo-183x75',
-                            'clearlogo': 'profile:nextgen-web-artlogo-183x75',
-                            'clearart': 'profile:nextgen-web-artlogo-183x75',
-                        },
-                        'HERO_LANDSCAPE': {
-                            'fanart': 'profile:nextgen-web-herolandscape-1920x',
-                            'landscape': 'profile:nextgen-web-herolandscape-1920x',
-                        },
-                        'HERO_PORTRAIT': {
-                            'poster': 'profile:nextgen-webphone-heroportrait-563x',
-                        },
+                    'primaryImage': {
+                        'thumb': 'profile:original'
                     },
-
+                    'artLogoImage': {
+                        'icon': 'profile:nextgen-web-artlogo-183x75',
+                        'clearlogo': 'profile:nextgen-web-artlogo-183x75',
+                        'clearart': 'profile:nextgen-web-artlogo-183x75',
+                    },
+                    'heroLandscapeImage': {
+                        'thumb': 'profile:original',
+                        'fanart': 'profile:nextgen-web-herolandscape-1920x',
+                        'landscape': 'profile:nextgen-web-herolandscape-1920x',
+                    },
+                    'heroPortraitImage': {
+                        'thumb': 'profile:original',
+                        'poster': 'profile:nextgen-webphone-heroportrait-563x',
+                    },
                 },
             },
 
            'EPISODE': {
                'TEXTS': {'title': 'title', 'description': 'plot'},
                'ART': {
-                    'images': {
-                        'PRIMARY': {
-                            'thumb': 'profile:original'
-                        },
-                        'ART_LOGO': {
-                            'icon': 'profile:nextgen-web-artlogo-183x75',
-                            'clearlogo': 'profile:nextgen-web-artlogo-183x75',
-                        },
-                        'HERO_LANDSCAPE': {
-                            'fanart': 'profile:nextgen-web-herolandscape-1920x',
-                        },
-                        'HERO_PORTRAIT': {
-                            'poster': 'profile:nextgen-webphone-heroportrait-563x',
-                        },
+                    'primaryImage': {
+                        'thumb': 'profile:original'
+                    },
+                    'artLogoImage': {
+                        'icon': 'profile:nextgen-web-artlogo-183x75',
+                        'clearlogo': 'profile:nextgen-web-artlogo-183x75',
+                    },
+                    'heroLandscapeImage': {
+                        'fanart': 'profile:nextgen-web-herolandscape-1920x',
+                    },
+                    'heroPortrait': {
+                        'poster': 'profile:nextgen-webphone-heroportrait-563x',
                     },
                 },
             },
@@ -332,186 +334,65 @@ CONST = {
                     },
                 },
             },
+
+            'TEASER': {
+                'TEXTS': {'title': 'title'},
+                'ART': {
+                    'images': {
+                        'icon': 'profile:nextgen-web-artlogo-183x75',
+                        'thumb': 'profile:original',
+                        'clearlogo': 'profile:nextgen-web-artlogo-183x75',
+                    },
+                },
+            },
         },
 
-        'GET_BONUS': {
-            'QUERY': '($seriesId: ID!, $first: Int!, $offset: Int!) { series(id: $seriesId) { __typename id ageRating { __typename description minAge '\
-                'ratingSystem } extras(first: $first, offset: $offset) { __typename id title video { __typename duration id } images { __typename id '\
-                'copyright type url accentColor } tracking { __typename agofCode externalAssetId brand url } } } }',
-            'OPERATION': 'getBonus',
-            'REQUIRED_VARIABLES': ['seriesId', 'first', 'offset']
-        },
-
-        'GET_BRANDS': {
-            'QUERY': '{ brands { __typename id livestream { __typename id agofCode title quality } logo { __typename accentColor url } hasVodContent title } }',
-            'OPERATION': 'getBrands',
-        },
-
-        'LANDINGPAGE': {
-            'QUERY': '($path: String!) { page(path: $path) { __typename ... on LandingPage { blocks { __typename id isPersonalized ... on StandardLane { '\
-                'headline } ... on FeaturedLane { headline } ... on LiveLane { headline } ... on ResumeLane { headline } ... on ChannelLane { headline '\
-                '} ... on BookmarkLane { headline } ... on RecoForYouLane { headline } } } } }',
-            'OPERATION': 'LandingPage',
+        'LANDINGPAGECLIENT': {
+            'OPERATION': 'LandingPageClient',
             'REQUIRED_VARIABLES': ['path'],
-            'AUTH': True,
+            'HASH': 'f3a761b458a3f0f2194a773244d6c35d718d412be342002d2dfcca9a1a411cca',
         },
 
-       'SINGLEBLOCK': {
-            'QUERY': '($blockId: String!, $offset: Int!, $first: Int!) { block(id: $blockId) { __typename id assets(offset: $offset, first: $first) { '\
-                '__typename ...MovieCoverFragment ...SeriesCoverFragment ...BrandCoverFragment ...EpisodeCoverFragment ...EpgFragment '\
-                '...CompilationCoverFragment } } } fragment MovieCoverFragment on Movie { __typename id title description ageRating { description label '\
-                'minAge ratingSystem } copyright copyrights endsAt genres { id name title type } images { __typename type url } isBookmarked languages '\
-                '{ code title } licenseTypes markings productionCompanies productionCountries productionYear resumePosition { position } tagline '\
-                'tracking { adfree agofCode brand duration externalAssetId genres parentAssetId primaryAirdateBrand promamsId trackingId url '\
-                'visibilityStart webExclusive } video { __typename id licenses { deviceRestrictions { deviceClasses maximumResolution } endDate '\
-                'geoRestrictions protectionLevel publishingChannels source startDate type } duration markers { end source start type } } } fragment '\
-                'SeriesCoverFragment on Series { __typename id title isBookmarked description ageRating { description label minAge ratingSystem } '\
-                'copyright copyrights markings images { url type __typename } licenseTypes genres { id name title type } isBingeable numberOfSeasons '\
-                'productionCompanies productionCountries productionYear subtype tagline languages { code title } } fragment BrandCoverFragment on Brand '\
-                '{ __typename id title path logo { __typename type accentColor url } livestream { __typename id quality } } fragment '\
-                'EpisodeCoverFragment on Episode { __typename id airdate ageRating { description label minAge ratingSystem } description endsAt genres '\
-                '{ id name title type } images { __typename type url } licenseTypes markings number resumePosition { position } title tracking { adfree '\
-                'agofCode brand duration externalAssetId genres parentAssetId primaryAirdateBrand promamsId trackingId url visibilityStart webExclusive '\
-                '} video { __typename id licenses { deviceRestrictions { deviceClasses maximumResolution } endDate geoRestrictions protectionLevel '\
-                'publishingChannels source startDate type } duration markers { end source start type } } season { __typename id number numberOfEpisodes '\
-                'title } series { __typename id title isBookmarked description ageRating { description label minAge ratingSystem } copyright copyrights '\
-                'markings images { url type __typename } licenseTypes genres { id name title type } isBingeable numberOfSeasons productionCompanies '\
-                'productionCountries productionYear subtype tagline languages { code title } } } fragment EpgFragment on EpgEntry { __typename id '\
-                'startDate endDate images { __typename type url accentColor } title secondaryTitle livestream { __typename id brand { __typename id '\
-                'logo { __typename url accentColor } title } } } fragment CompilationCoverFragment on Compilation { __typename id title isBookmarked '\
-                'description ageRating { description label minAge ratingSystem } copyright copyrights licenseTypes markings images { url type '\
-                '__typename } genres { id name title type } numberOfItems languages { code title } }',
-            'OPERATION': 'SingleBlockQuery',
-            'REQUIRED_VARIABLES': ['blockId', 'offset', 'first'],
-            'AUTH': True,
+       'LANDINGBLOCKS': {
+            'OPERATION': 'LandingBlocks',
+            'REQUIRED_VARIABLES': ['ids'],
             'BOOKMARKS': True,
+            'HASH': 'f55b21bdf2f42787bfa66d6868276a07848437ce5f23707a06467144235d49a3',
         },
 
         'CHANNEL': {
-            'QUERY': '($path: String!, $offset: Int!, $first: Int!) { page(path: $path) { __typename ... on ChannelPage { assets(offset: $offset, first: '\
-                '$first) { __typename ...MovieCoverFragment ...SeriesCoverFragment ...EpisodeCoverFragment ...CompilationCoverFragment } } } } fragment '\
-                'MovieCoverFragment on Movie { __typename id title description ageRating { description label minAge ratingSystem } copyright copyrights '\
-                'endsAt genres { id name title type } images { __typename type url } isBookmarked languages { code title } licenseTypes markings '\
-                'productionCompanies productionCountries productionYear resumePosition { position } tagline tracking { adfree agofCode brand duration '\
-                'externalAssetId genres parentAssetId primaryAirdateBrand promamsId trackingId url visibilityStart webExclusive } video { __typename id '\
-                'licenses { deviceRestrictions { deviceClasses maximumResolution } endDate geoRestrictions protectionLevel publishingChannels source '\
-                'startDate type } duration markers { end source start type } } } fragment SeriesCoverFragment on Series { __typename id title '\
-                'isBookmarked description ageRating { description label minAge ratingSystem } copyright copyrights markings images { url type '\
-                '__typename } licenseTypes genres { id name title type } isBingeable numberOfSeasons productionCompanies productionCountries '\
-                'productionYear subtype tagline languages { code title } } fragment EpisodeCoverFragment on Episode { __typename id airdate ageRating { '\
-                'description label minAge ratingSystem } description endsAt genres { id name title type } images { __typename type url } licenseTypes '\
-                'markings number resumePosition { position } title tracking { adfree agofCode brand duration externalAssetId genres parentAssetId '\
-                'primaryAirdateBrand promamsId trackingId url visibilityStart webExclusive } video { __typename id licenses { deviceRestrictions { '\
-                'deviceClasses maximumResolution } endDate geoRestrictions protectionLevel publishingChannels source startDate type } duration markers '\
-                '{ end source start type } } season { __typename id number numberOfEpisodes title } series { __typename id title isBookmarked '\
-                'description ageRating { description label minAge ratingSystem } copyright copyrights markings images { url type __typename } '\
-                'licenseTypes genres { id name title type } isBingeable numberOfSeasons productionCompanies productionCountries productionYear subtype '\
-                'tagline languages { code title } } } fragment CompilationCoverFragment on Compilation { __typename id title isBookmarked description '\
-                'ageRating { description label minAge ratingSystem } copyright copyrights licenseTypes markings images { url type __typename } genres { '\
-                'id name title type } numberOfItems languages { code title } }',
-            'OPERATTON': 'ChannelPageQuery',
-            'REQUIRED_VARIABLES': ['path', 'offset', 'first'],
-            'AUTH': True,
+            'OPERATION': 'PageOverviewChannel',
+            'REQUIRED_VARIABLES': ['path', 'first', 'offset'],
             'BOOKMARKS': True,
+            'HASH': 'c840f7161986a358bc0eb59b981333e1cce94fb14deac9a2d8dc2157eb37c999',
+        },
+
+        'COLLECTION': {
+            'OPERATION': 'PageCollectionsDetail',
+            'REQUIRED_VARIABLES': ['path'],
+            'BOOKMARKS': True,
+            'HASH': '409f1c6c6bab2c9e78aaa368426e799aa856448908f0a50f28f7a103f0984fa8',
+        },
+
+        'MOVIES': {
+            'OPERATION': 'PageMovieDetailStatic',
+            'REQUIRED_VARIABLES': ['path'],
+            'BOOKMARKS': True,
+            'HASH': 'f658bcd3dd3917628f8636d574a477f6c865c9d3d2f774684f49d1a7c7501be4',
         },
 
         'SEASONS': {
-            'QUERY': '($seriesId: ID!, $seasonLicenseFilter: LicenseFilter!) { series(id: $seriesId) { __typename id title isBookmarked description '\
-                'ageRating { description label minAge ratingSystem } copyright copyrights markings images { url type __typename } licenseTypes genres { '\
-                'id name title type } isBingeable numberOfSeasons productionCompanies productionCountries productionYear subtype tagline languages { '\
-                'code title } seasons (licenseFilter: $seasonLicenseFilter) { __typename id number numberOfEpisodes title  licenseTypes} } }',
-            'OPERATION': 'getSeries',
-            'REQUIRED_VARIABLES': ['seriesId', 'seasonLicenseFilter'],
-            'BOOKMARKS': True,
-            'AUTH': True,
-            'FILTER_LICENSE_TYPES': False,
-        },
-
-        'SEASONS_NOLICENSEFILTER': {
-            'QUERY': '($seriesId: ID!) { series(id: $seriesId) { __typename id title isBookmarked description '\
-                'ageRating { description label minAge ratingSystem } copyright copyrights markings images { url type __typename } licenseTypes genres { '\
-                'id name title type } isBingeable numberOfSeasons productionCompanies productionCountries productionYear subtype tagline languages { '\
-                'code title } seasons { __typename id number numberOfEpisodes title licenseTypes } } }',
-           'OPERATION': 'getSeries',
-           'REQUIRED_VARIABLES': ['seriesId'],
+           'OPERATION': 'SeriesDetailPageStatic',
+           'REQUIRED_VARIABLES': ['path', 'licenseFilter'],
            'BOOKMARKS': True,
-           'AUTH': True,
-           'FILTER_LICENSE_TYPES': False,
+           'HASH': '5ed7f5c47d0ac615829346403c5c2b025450e98bce762475288c639675f6d0b7',
         },
 
         'EPISODES': {
-            'QUERY': '($seasonId: ID!, $first: Int!, $offset: Int!, $episodeLicenseFilter: LicenseFilter!) { season(id: $seasonId) { __typename id number '\
-                'title episodes(first: $first, offset: $offset, licenseFilter: $episodeLicenseFilter) { __typename id airdate ageRating { description '\
-                'label minAge ratingSystem } description endsAt genres { id name title type } images { __typename type url } licenseTypes markings '\
-                'number resumePosition { position } title tracking { adfree agofCode brand duration externalAssetId genres parentAssetId '\
-                'primaryAirdateBrand promamsId trackingId url visibilityStart webExclusive } video { __typename id licenses { deviceRestrictions { '\
-                'deviceClasses maximumResolution } endDate geoRestrictions protectionLevel publishingChannels source startDate type } duration markers '\
-                '{ end source start type } } season { __typename id number numberOfEpisodes title } series { __typename id title isBookmarked '\
-                'description ageRating { description label minAge ratingSystem } copyright copyrights markings images { url type __typename } '\
-                'licenseTypes genres { id name title type } isBingeable numberOfSeasons productionCompanies productionCountries productionYear subtype '\
-                'tagline languages { code title } } } } }',
-            'OPERATION': 'getSeason',
-            'REQUIRED_VARIABLES': ['seasonId', 'first', 'offset', 'episodeLicenseFilter'],
-            'AUTH': True,
+            'OPERATION': 'Season',
+            'REQUIRED_VARIABLES': ['id', 'licenseFilter', 'first', 'offset'],
             'BOOKMARKS': True,
-            'FILTER_LICENSE_TYPES': False,
-        },
-
-        'EPISODES_NOLICENSEFILTER': {
-            'QUERY': '($seasonId: ID!, $first: Int!, $offset: Int!) { season(id: $seasonId) { __typename id number '\
-                'title episodes(first: $first, offset: $offset) { __typename id airdate ageRating { description '\
-                'label minAge ratingSystem } description endsAt genres { id name title type } images { __typename type url } licenseTypes markings '\
-                'number resumePosition { position } title tracking { adfree agofCode brand duration externalAssetId genres parentAssetId '\
-                'primaryAirdateBrand promamsId trackingId url visibilityStart webExclusive } video { __typename id licenses { deviceRestrictions { '\
-                'deviceClasses maximumResolution } endDate geoRestrictions protectionLevel publishingChannels source startDate type } duration markers '\
-                '{ end source start type } } season { __typename id number numberOfEpisodes title } series { __typename id title isBookmarked '\
-                'description ageRating { description label minAge ratingSystem } copyright copyrights markings images { url type __typename } '\
-                'licenseTypes genres { id name title type } isBingeable numberOfSeasons productionCompanies productionCountries productionYear subtype '\
-                'tagline languages { code title } } } } }',
-            'OPERATION': 'getSeason',
-            'REQUIRED_VARIABLES': ['seasonId', 'first', 'offset'],
-            'AUTH': True,
-            'BOOKMARKS': True,
-            'FILTER_LICENSE_TYPES': False,
-        },
-
-        'COMPILATION_ITEMS': {
-            'QUERY': '($id: ID!, $offset: Int!, $first: Int!) { compilation(id: $id) { __typename compilationItems(first: $first, offset: $offset) { '\
-                '__typename ... on CompilationItem { ...CompilationItemCoverFragment } } } } fragment CompilationItemCoverFragment on CompilationItem { '\
-                '__typename id ageRating { description label minAge ratingSystem } description endsAt genres { id name title type } images { __typename '\
-                'type url } markings licenseTypes resumePosition { position } title tracking { adfree agofCode brand duration externalAssetId genres '\
-                'parentAssetId primaryAirdateBrand promamsId trackingId url visibilityStart webExclusive } video { __typename id licenses { '\
-                'deviceRestrictions { deviceClasses maximumResolution } endDate geoRestrictions protectionLevel publishingChannels source startDate '\
-                'type } duration markers { end source start type } } compilation { id images { __typename type url } ageRating { description label '\
-                'minAge ratingSystem } copyright } }',
-            'OPERATION': 'GetCompilationItemsQuery',
-            'REQUIRED_VARIABLES': ['id', 'first', 'offset'],
-            'BOOKMARKS': True,
-            'AUTH': True,
-        },
-
-        'COMPILATION': {
-            'QUERY': '($id: ID!) { compilation(id: $id) { __typename id description images { __typename id type url } genres { __typename name type } title '\
-                'ageRating { __typename description minAge ratingSystem } copyrights numberOfItems licenseTypes markings isBookmarked } }',
-            'OPERATION': 'GetCompilationDetailsQuery',
-            'REQUIRED_VARIABLES': ['id'],
-            'BOOKMARKS': True,
-            'AUTH': True,
-        },
-
-        'SERIES': {
-            'QUERY': '($id: ID!) { series(id: $id) { __typename id title isBookmarked description ageRating { description label minAge ratingSystem } '\
-                'copyright copyrights markings images { url type __typename } licenseTypes genres { id name title type } isBingeable numberOfSeasons '\
-                'productionCompanies productionCountries productionYear subtype tagline languages { code title } }}',
-            'REQUIRED_VARIABLES': ['id'],
-            'BOOKMARKS': True,
-            'AUTH': True,
-        },
-
-        'BRAND': {
-            'QUERY': '($id: Int!) { brand(brandId: $id) { __typename id title hasVodContent livestream { __typename id agofCode title quality } markings logo '\
-                '{ url type __typename } path } }',
-            'REQUIRED_VARIABLES': ['id'],
+            'HASH': '6cb71b6577e081063eb9f8035daf514fc800387a2df9aec6a0f3ac267f95606c',
         },
 
         'EPG': {
@@ -523,49 +404,36 @@ CONST = {
         },
 
         'SEARCH': {
-            'QUERY': '($text: String!) { search(term: $text, first: 50) { __typename results { __typename ...BrandCoverFragment ...SeriesCoverFragment '\
-                '...MovieCoverFragment ...CompilationCoverFragment } } } fragment BrandCoverFragment on Brand { __typename id title path logo { '\
-                '__typename type accentColor url } livestream { __typename id quality } } fragment SeriesCoverFragment on Series { __typename id title '\
-                'isBookmarked description ageRating { description label minAge ratingSystem } copyright copyrights markings images { url type '\
-                '__typename } licenseTypes genres { id name title type } isBingeable numberOfSeasons productionCompanies productionCountries '\
-                'productionYear subtype tagline languages { code title } } fragment MovieCoverFragment on Movie { __typename id title description '\
-                'ageRating { description label minAge ratingSystem } copyright copyrights endsAt genres { id name title type } images { __typename type '\
-                'url } isBookmarked languages { code title } licenseTypes markings productionCompanies productionCountries productionYear '\
-                'resumePosition { position } tagline tracking { adfree agofCode brand duration externalAssetId genres parentAssetId primaryAirdateBrand '\
-                'promamsId trackingId url visibilityStart webExclusive } video { __typename id licenses { deviceRestrictions { deviceClasses '\
-                'maximumResolution } endDate geoRestrictions protectionLevel publishingChannels source startDate type } duration markers { end source '\
-                'start type } } } fragment CompilationCoverFragment on Compilation { __typename id title isBookmarked description ageRating { '\
-                'description label minAge ratingSystem } copyright copyrights markings images { url type __typename } genres { id name title type } '\
-                'numberOfItems languages { code title } }',
-            'OPERATION': 'searchQuery',
+            'OPERATION': 'SearchQ',
             'REQUIRED_VARIABLES': ['text'],
-            'AUTH': True,
             'NO_CACHE': True,
             'BOOKMARKS': True,
+            'HASH': '74eaf4889709ba76358da22e21e6c50da56d53076400df527cb9840c6924a830',
         },
 
         'ACCOUNT': {
-            'QUERY': '{ me { account { id } profile { id email gender birthday avatar { color icon iconURL } } state subscriptions { productId type '\
-                'provider { name } state { freeTrialUntil isActive } } subscriptionConfig { hasActivePlus hasActiveHD } } }',
-            'OPERATION': 'GetAccountInfoQuery',
-            'REQUIRED_VARIABLES': [],
-            'AUTH': True,
+            'OPERATION': 'GetAccountInfo',
             'NO_CACHE': True,
+            'HASH': 'e443422a2705e42b3167629184be8f5f8976c0825a58f32dc1d5ca4cf9e5e8cb',
         },
 
-        'USER_PROFILE': {
-            'QUERY': '{ me { account { id email } profile { id email name gender birthday } state bookmarkedAssetIds subscriptions { id productId type '\
-                '} subscriptionType subscriptionConfig { stripePublicAPIKey canUseDirectDebit freeTrialUntil hasActivePremium hasActivePlus hasActiveHD '\
-                'renewsOn } } }',
-            'AUTH': True,
-            'NO_CACHE': True,
+        'LANEBOOKMARK': {
+            'OPERATION': 'LaneBookmark',
+            'REQUIRED_VARIABLES': ['blockId'],
+            'BOOKMARKS': True,
+            'HASH': 'b79c25e5127101af60d70fd965698d2f7439c19b35cf3ed0fb52548c350633f2',
+        },
+
+        'MEBOOKMARK': {
+            'OPERATION': 'MeBookmark',
+            'BOOKMARKS': True,
+            'HASH': '5bd7bf0a7ec62faf7d76ad39712e647af69488b0d8e574db1f53c0d89b8b4d53',
         },
 
         'ADD_BOOKMARK': {
             'QUERY': '($assetId: ID!) {setBookmark(assetId:$assetId) { __typename}}',
             'OPERATION': 'setBookmarkMutation',
             'REQUIRED_VARIABLES': ['assetId'],
-            'AUTH': True,
             'IS_MUTATION': True,
             'NO_CACHE': True,
         },
@@ -574,20 +442,34 @@ CONST = {
             'QUERY': '($assetId: ID!) { removeBookmark(assetId:$assetId) }',
             'OPERATION': 'removeBookmarkMutation',
             'REQUIRED_VARIABLES': ['assetId'],
-            'AUTH': True,
             'IS_MUTATION': True,
             'NO_CACHE': True,
+        },
+
+        'RESUMELANE': {
+            'OPERATION': 'ResumeLaneWithToken',
+            'REQUIRED_VARIABLES': ['blockId'],
+            'BOOKMARKS': True,
+            'HASH': '504e65eccb4f2383937ca20d813fa0693c1a5872e87d78ff4d4faf86c45531da',
+        },
+
+        'RESUMEPOSITIONS': {
+            'OPERATION': 'ResumePositionsWithToken',
+            'REQUIRED_VARIABLES': ['ids'],
+            'BOOKMARKS': True,
+            'HASH': '362a1247c64705097a83a48dc5fb99a29dd573fe276f0b2fb91e50c165752e0b',
         },
 
         'SET_RESUME_POSITION': {
             'QUERY': '($assetId: ID!, $position: Int!) { setResumePosition(assetId:$assetId, position:$position) { __typename '\
                 'assetId position } }',
             'OPERATION': 'setResumeMutation',
-            'AUTH': True,
             'IS_MUTATION': True,
             'NO_CACHE': True,
         },
     },
 
-    'CATEGORY_LANES': ['RecoForYouLane', 'ResumeLane', 'FeaturedLane', 'StandardLane'],
+    'CATEGORY_LANES': ['StandardLane', 'CollectionLane', 'FeaturedLane'],
+    'COLLECTION_LANES': ['StandardLane'],
+    'COLLECTION_GRID': ['Grid'],
 }

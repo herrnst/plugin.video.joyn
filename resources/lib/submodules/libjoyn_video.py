@@ -152,7 +152,7 @@ def get_entitlement_data(video_id, stream_type, pin_required=False, invalid_pin=
 	return entitlement_response
 
 
-def get_video_data(video_id, client_data, stream_type, season_id=None, compilation_id=None):
+def get_video_data(video_id, client_data, stream_type, season_id=None, movie_id=None, path=None):
 
 	from ..request_helper import base64_encode_urlsafe
 
@@ -190,16 +190,17 @@ def get_video_data(video_id, client_data, stream_type, season_id=None, compilati
 		                               no_cache=True,
 		                               silent=True)
 
-		if isinstance(video_data, dict) and video_data.get('streamingFormat',
-		                                                   '') == 'dash' and video_data.get('videoUrl', None) is not None:
+		if isinstance(video_data, dict) and video_data.get('streamingFormat', '') == 'dash' and video_data.get('videoUrl', None) is not None:
 			mpdparser = get_mpd_parser(url=video_data.get('videoUrl'), stream_type=stream_type, video_id=video_id)
 			if mpdparser is not None:
 				video_data.update({'parser': mpdparser})
 
 			if season_id is not None:
 				video_data.update({'season_id': season_id})
-			if compilation_id is not None:
-				video_data.update({'compilation_id': compilation_id})
+			if movie_id is not None:
+				video_data.update({'movie_id': movie_id})
+			if path is not None:
+				video_data.update({'path': path})
 
 	return video_data
 
@@ -228,9 +229,6 @@ def get_video_client_data(asset_id, stream_type, asset_data={}):
 
 	if 'series' in asset_data.keys() and 'id' in asset_data['series'].keys():
 		client_data.update({'tvShowId': asset_data['series']['id']})
-
-	if 'compilation' in asset_data.keys() and 'id' in asset_data['compilation'].keys():
-		client_data.update({'tvShowId': asset_data['compilation']['id']})
 
 	if 'tracking' in asset_data.keys():
 		if 'agofCode' in asset_data['tracking'].keys():

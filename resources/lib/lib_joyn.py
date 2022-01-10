@@ -36,7 +36,7 @@ class lib_joyn(Singleton):
 		self.config = lib_joyn.get_config()
 		self.auth_token_data = None
 		self.account_info = None
-		self.landingpage = None
+		self.landingpage = dict()
 		self.user_agent_http_header = None
 		self.addon = None
 		self.epg_cache = None
@@ -107,22 +107,12 @@ class lib_joyn(Singleton):
 		return epg_data
 
 
-	def get_landingpage(self):
+	def get_landingpage(self, path='/'):
 
-		if self.landingpage is None:
-			landingpage = {}
-			raw_landingpage = self.get_graphql_response('LANDINGPAGE', {'path': '/'})
-			if 'page' in raw_landingpage.keys() and 'blocks' in raw_landingpage['page'].keys():
-				for block in raw_landingpage['page']['blocks']:
-					if self.get_auth_token().get('has_account', False) is True or block.get('isPersonalized', False) is False:
-						if block['__typename'] not in landingpage.keys():
-							landingpage.update({block['__typename']: {}})
+		if path not in self.landingpage:
+			self.landingpage.update({path: self.get_graphql_response('LANDINGPAGECLIENT', {'path': path})})
 
-						landingpage[block['__typename']].update({block['id']: block.get('headline', None)})
-
-				self.landingpage = landingpage
-
-		return self.landingpage
+		return self.landingpage[path]
 
 
 	def get_account_info(self, force_refresh=False):
@@ -294,18 +284,21 @@ class lib_joyn(Singleton):
 
 		request_url = CONST['GRAPHQL']['API_URL']
 
-		if CONST['GRAPHQL'][operation].get('BOOKMARKS', False) is True and self.get_auth_token().get('has_account', False) is False:
-			query = CONST['GRAPHQL'][operation]['QUERY'].replace('isBookmarked ', '')
-		else:
-			query = CONST['GRAPHQL'][operation]['QUERY']
+		params = dict()
 
-		params = {
+		if 'QUERY' in CONST['GRAPHQL'][operation]:
+			if CONST['GRAPHQL'][operation].get('BOOKMARKS', False) is True and self.get_auth_token().get('has_account', False) is False:
+				query = CONST['GRAPHQL'][operation]['QUERY'].replace('isBookmarked ', '')
+			else:
+				query = CONST['GRAPHQL'][operation]['QUERY']
+
+			params.update({
 		        'query':
 		        compat._format(
 		                '{} {} {}', 'query' if CONST['GRAPHQL'][operation].get('IS_MUTATION', False) is False else 'mutation', ''
 		                if CONST['GRAPHQL'][operation].get('OPERATION', None) is None else CONST['GRAPHQL'][operation]['OPERATION'],
 		                query)
-		}
+			})
 
 		if len(variables.keys()) != 0:
 			if CONST['GRAPHQL'][operation].get('IS_MUTATION', False) is False:
@@ -319,7 +312,7 @@ class lib_joyn(Singleton):
 			        'extensions': {
 			                'persistedQuery': {
 			                        'version': 1,
-			                        'sha256Hash': sha256(params['query'].encode('utf-8')).hexdigest(),
+			                        'sha256Hash': sha256(params['query'].encode('utf-8')).hexdigest() if 'query' in params else CONST['GRAPHQL'][operation].get('HASH'),
 			                },
 			        }
 			})
@@ -736,9 +729,22 @@ class lib_joyn(Singleton):
 
 					for image in images:
 						for art_def_img_type, art_def_img in art_def.items():
-							if image.get('__typename', '') == 'Image' and art_def_img_type == image.get('type', ''):
+							if isinstance(art_def_img, dict) and image:
 								for art_def_img_map_key, art_def_img_map_profile in art_def_img.items():
-									metadata['art'].update({art_def_img_map_key: compat._format('{}/{}', image['url'], art_def_img_map_profile)})
+									if image.get('__typename', '') == 'Image' and art_def_img_type == image.get('type', ''):
+										metadata['art'].update({art_def_img_map_key: compat._format('{}/{}', image['url'], art_def_img_map_profile)})
+									elif image.get(art_def_img_type, {}).get('url') or image.get(art_def_img_type, {}).get('urlCard'):
+										metadata['art'].update({
+															art_def_img_map_key:
+																compat._format('{}/{}',
+																	image[art_def_img_type]['url'].rsplit('/', 1)[0]
+																		if 'url' in image[art_def_img_type]
+																		else image[art_def_img_type]['urlCard'].rsplit('/', 1)[0],
+																	art_def_img_map_profile
+																)
+										})
+							elif image and (image.get('url') or image.get('urlCard')):
+								metadata['art'].update({art_def_img_type: compat._format('{}', image['url'] if 'url' in image else image['urlCard'])})
 
 		age_rating = None
 		if 'ageRating' in data.keys() and data['ageRating'] is not None and 'minAge' in data['ageRating'].keys():
@@ -749,9 +755,6 @@ class lib_joyn(Singleton):
 		elif isinstance(data.get('season', None), dict) and isinstance(data.get('season').get(
 		        'ageRating', None), dict) and data.get('season').get('ageRating').get('minAge', None) is not None:
 			age_rating = data.get('season').get('ageRating').get('minAge')
-		elif isinstance(data.get('compilation', None), dict) and isinstance(data.get('compilation').get(
-		        'ageRating', None), dict) and data.get('compilation').get('ageRating').get('minAge', None) is not None:
-			age_rating = data.get('compilation').get('ageRating').get('minAge')
 
 		if age_rating is not None:
 			metadata['infoLabels'].update({'mpaa': compat._format(xbmc_helper().translation('MIN_AGE'), str(age_rating))})
@@ -770,11 +773,9 @@ class lib_joyn(Singleton):
 			copyrights = data.get('series').get('copyrights')
 		elif isinstance(data.get('season', None), dict) and data.get('season').get('copyrights', None) is not None:
 			copyrights = data.get('season').get('copyrights')
-		elif isinstance(data.get('compilation', None), dict) and data.get('compilation').get('copyrights', None) is not None:
-			copyrights = data.get('compilation').get('copyrights')
 
 		if copyrights is not None:
-			metadata['infoLabels'].update({'Studio': copyrights})
+			metadata['infoLabels'].update({'studio': copyrights})
 
 		if query_type == 'EPISODE':
 			if 'endsAt' in data.keys() and data['endsAt'] is not None and data['endsAt'] < 9999999999:
@@ -798,13 +799,6 @@ class lib_joyn(Singleton):
 				if 'clearlogo' in series_meta['art'].keys():
 					metadata['art'].update({'clearlogo': series_meta['art']['clearlogo']})
 
-			elif 'compilation' in data.keys():
-				compilation_meta = lib_joyn.get_metadata(data['compilation'], 'TVSHOW')
-				if 'title' in data['compilation'].keys():
-					metadata['infoLabels'].update({'tvshowtitle': html.unescape(data['compilation']['title'])})
-				if 'clearlogo' in compilation_meta['art'].keys():
-					metadata['art'].update({'clearlogo': compilation_meta['art']['clearlogo']})
-
 		if 'airdate' in data.keys() and data['airdate'] is not None:
 			broadcast_datetime = xbmc_helper().timestamp_to_datetime(data['airdate'])
 			if broadcast_datetime is not False:
@@ -819,12 +813,12 @@ class lib_joyn(Singleton):
 		) and data['video']['duration'] is not None:
 			metadata['infoLabels'].update({'duration': (data['video']['duration'])})
 
-		if 'season' in data.keys() and data['season'] is not None and 'number' in data['season'].keys(
-		) and data['season']['number'] is not None:
+		if 'season' in data.keys() and data['season'] is not None and 'seasonNumber' in data['season'].keys(
+		) and data['season']['seasonNumber'] is not None:
 
 			metadata['infoLabels'].update({
-			        'season': data['season']['number'],
-			        'sortseason': data['season']['number'],
+			        'season': data['season']['seasonNumber'],
+			        'sortseason': data['season']['seasonNumber'],
 			})
 
 		if data.get('tagline', None) is not None:
@@ -933,3 +927,40 @@ class lib_joyn(Singleton):
 				csrf_token = match[1]
 
 		return csrf_param, csrf_token
+
+
+	def get_resume_positions(self, items):
+		if self.get_auth_token().get('has_account', False) is not False:
+			ids = []
+			for item in items:
+				if item['__typename'] in ['Movie', 'Episode']:
+					ids.append(item.get('id'))
+
+			if(len(ids) > 0):
+				resumepositions = lib_joyn().get_graphql_response('RESUMEPOSITIONS', {
+						'ids': ids,
+				})
+				if resumepositions is not None and resumepositions.get('resumePositions') is not None:
+					for resumeposition in resumepositions.get('resumePositions'):
+						for item in items:
+							if resumeposition.get('assetId') == item.get('id') and resumeposition.get('position') > 0:
+								item.update({'resumePosition': resumeposition})
+
+		return items
+
+
+	def get_bookmarks(self, items):
+		if self.get_auth_token().get('has_account', False) is not False:
+			bookmarks_data = lib_joyn().get_graphql_response('MEBOOKMARK')
+
+			if bookmarks_data is not None and bookmarks_data.get('me', {}).get('bookmarkItems') is not None:
+				bookmarks_list = []
+				for bookmark in bookmarks_data['me']['bookmarkItems']:
+					bookmarks_list.append(bookmark['id'])
+
+			if len(bookmarks_list) > 0:
+				for item in items:
+					if item['__typename'] in ['Movie', 'Series']:
+						item.update({'isBookmarked': item['id'] in bookmarks_list})
+
+		return items

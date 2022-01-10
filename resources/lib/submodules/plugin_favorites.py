@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from xbmc import executebuiltin
+from copy import deepcopy
 from ..xbmc_helper import xbmc_helper
 from ..const import CONST
 from .. import compat
@@ -99,8 +100,8 @@ def drop_favorites(favorite_item, default_icon, silent=False, fav_type=''):
 			favorites.remove(favorite)
 			found = True
 
-		elif 'compilation_id' in favorite_item.keys() and 'compilation_id' in favorite.keys(
-		) and favorite_item['compilation_id'] == favorite['compilation_id']:
+		elif 'movie_id' in favorite_item.keys() and 'movie_id' in favorite.keys(
+		) and favorite_item['movie_id'] == favorite['movie_id']:
 			favorites.remove(favorite)
 			found = True
 
@@ -111,6 +112,11 @@ def drop_favorites(favorite_item, default_icon, silent=False, fav_type=''):
 
 		elif 'category_name' in favorite_item.keys() and 'category_name' in favorite.keys(
 		) and favorite_item['category_name'] == favorite['category_name']:
+			favorites.remove(favorite)
+			found = True
+
+		elif 'collection_id' in favorite_item.keys() and 'collection_id' in favorite.keys(
+		) and favorite_item['collection_id'] == favorite['collection_id']:
 			favorites.remove(favorite)
 			found = True
 
@@ -138,12 +144,16 @@ def check_favorites(favorite_item):
 		) and favorite_item['block_id'] == favorite['block_id']:
 			return True
 
-		elif 'compilation_id' in favorite_item.keys() and 'compilation_id' in favorite.keys(
-		) and favorite_item['compilation_id'] == favorite['compilation_id']:
+		elif 'movie_id' in favorite_item.keys() and 'movie_id' in favorite.keys(
+		) and favorite_item['movie_id'] == favorite['movie_id']:
 			return True
 
 		elif 'channel_id' in favorite_item.keys() and 'channel_id' in favorite.keys(
 		) and favorite_item['channel_id'] == favorite['channel_id']:
+			return True
+
+		elif 'collection_id' in favorite_item.keys() and 'collection_id' in favorite.keys(
+		) and favorite_item['collection_id'] == favorite['collection_id']:
 			return True
 
 	return False
@@ -175,69 +185,73 @@ def show_favorites(title, pluginurl, pluginhandle, pluginquery, default_fanart, 
 			add_meta = {}
 
 		if favorite_item.get('season_id', None) is not None:
-			season_data = lib_joyn().get_graphql_response('EPISODES', {
-			        'seasonId': favorite_item['season_id'],
-			        'first': 1,
-			        'episodeLicenseFilter': lib_joyn().get_license_filter()
+			tvshow_data = lib_joyn().get_graphql_response('SEASONS', {
+			        'path': favorite_item['tv_show_path'],
+			        'licenseFilter': lib_joyn().get_license_filter()
 			})
-			if season_data.get('season', None) is not None and season_data.get('season').get('episodes', None) is not None and len(
-			        season_data['season']['episodes']) > 0:
-				season_metadata = lib_joyn().get_metadata(season_data['season']['episodes'][0]['series'], 'TVSHOW')
-				season_metadata['infoLabels'].update({
-				        'title':
-				        compat._format('{} - {}', season_metadata['infoLabels'].get('title', ''),
-				                       compat._format(xbmc_helper().translation('SEASON_NO'), str(season_data['season']['number'])))
-				})
 
-				if 'added' in favorite_item.keys():
-					season_metadata.update({'dateadded': datetime.fromtimestamp(favorite_item['added']).strftime('%Y-%m-%d %H:%M:%S')})
+			if tvshow_data.get('page').get('series', None) is not None:
+				for season in tvshow_data.get('page').get('series').get('allSeasons'):
+					if favorite_item['season_id'] == season['id'] and season['numberOfEpisodes'] > 0:
+						season_metadata = lib_joyn().get_metadata(tvshow_data.get('page').get('series'), 'TVSHOW')
+						season_metadata['infoLabels'].update({
+						        'title':
+						        compat._format('{} - {}', season_metadata['infoLabels'].get('title', ''),
+						                       compat._format(xbmc_helper().translation('SEASON_NO'), str(season['number'])))
+						})
 
-				list_items.append(
-				        get_dir_entry(
-				                mode='season_episodes',
-				                season_id=favorite_item['season_id'],
-				                metadata=season_metadata,
-				                override_fanart=default_fanart,
-				        ))
+						if 'added' in favorite_item.keys():
+							season_metadata.update({'dateadded': datetime.fromtimestamp(favorite_item['added']).strftime('%Y-%m-%d %H:%M:%S')})
+
+						list_items.append(
+						        get_dir_entry(
+						                mode='season_episodes',
+						                season_id=favorite_item['season_id'],
+						                metadata=season_metadata,
+						                override_fanart=default_fanart,
+						        ))
 
 		elif favorite_item.get('tv_show_id', None) is not None:
-			tvshow_data = lib_joyn().get_graphql_response('SERIES', {'id': favorite_item['tv_show_id']})
-			if tvshow_data.get('series', None) is not None:
-				list_items.extend(get_list_items([tvshow_data.get('series')], additional_metadata=add_meta, override_fanart=default_fanart))
-
-		elif favorite_item.get('compilation_id', None) is not None:
-			compilation_data = lib_joyn().get_graphql_response('COMPILATION', {'id': favorite_item['compilation_id']})
-			if compilation_data.get('compilation', None) is not None:
-				list_items.extend(
-				        get_list_items([compilation_data['compilation']], additional_metadata=add_meta, override_fanart=default_fanart))
+			tvshow_data = lib_joyn().get_graphql_response('SEASONS', {
+					'path': favorite_item['path'],
+					'licenseFilter': lib_joyn().get_license_filter()
+			})
+			if tvshow_data.get('page').get('series', None) is not None:
+				list_items.extend(get_list_items([tvshow_data.get('page').get('series')], additional_metadata=add_meta, override_fanart=default_fanart))
 
 		elif favorite_item.get('block_id', None) is not None:
-			landingpage = lib_joyn().get_landingpage()
-			break_loop = False
-			for lane_type, categories in landingpage.items():
-				for category_block_id, category_name in categories.items():
-					if category_block_id == favorite_item['block_id'] and lane_type in CONST['CATEGORY_LANES']:
+			block_data = lib_joyn().get_graphql_response('LANDINGBLOCKS', {'ids': [favorite_item['block_id']]})
+			if block_data is not None and block_data.get('blocks', None) is not None:
+				for block in block_data.get('blocks'):
+					if favorite_item['block_id'] == block.get('id'):
 						list_items.append(
 						        get_dir_entry(metadata={
 						                'infoLabels': {
 						                        'title': compat._format('{}: {}',
-						                                                xbmc_helper().translation('CATEGORY'), category_name),
+						                                                xbmc_helper().translation('CATEGORY'), block.get('headline')),
 						                        'plot': ''
 						                },
 						                'art': {}
 						        },
 						                      mode='category',
-						                      block_id=category_block_id))
-						break_loop = True
+						                      viewtype='TV_SHOWS' if block.get('__typename') != 'LiveLane' else 'LIVE_TV',
+						                      block_id=block.get('id')))
 						break
-				if break_loop is True:
-					break
 
 		elif favorite_item.get('channel_id', None) is not None:
-			brand_data = lib_joyn().get_graphql_response('BRAND', {'id': int(favorite_item.get('channel_id'))})
-			xbmc_helper().log_debug('brand: {}', brand_data)
-			if brand_data.get('brand') is not None:
-				list_items.extend(get_list_items([brand_data['brand']], additional_metadata=add_meta, override_fanart=default_fanart))
+			channel_data = lib_joyn().get_graphql_response('CHANNEL', {'path': favorite_item.get('channel_path')})
+			if channel_data.get('page') is not None:
+				list_items.extend(get_list_items([channel_data.get('page')], additional_metadata=add_meta, override_fanart=default_fanart))
+
+		elif favorite_item.get('collection_id', None) is not None:
+			block_data = lib_joyn().get_graphql_response('LANDINGBLOCKS', {'ids': [favorite_item['parent_block_id']]})
+			if block_data is not None and block_data.get('blocks', None) is not None:
+				for block in block_data['blocks']:
+					for asset in block['assets']:
+						if favorite_item['collection_id'] == asset.get('id'):
+							list_items.extend(get_list_items([asset], additional_metadata=add_meta, override_fanart=default_fanart))
+							break
+
 	if len(list_items) == 0:
 		return xbmc_helper().notification(xbmc_helper().translation('WATCHLIST'),
 		                                  xbmc_helper().translation('MSG_NO_FAVS_YET'), default_icon)
@@ -271,11 +285,15 @@ def show_joyn_bookmarks(title, pluginurl, pluginhandle, pluginquery, default_ico
 	from xbmcplugin import addSortMethod, SORT_METHOD_UNSORTED, SORT_METHOD_LABEL
 
 	list_items = []
-	landingpage = lib_joyn().get_landingpage()
 
-	if 'BookmarkLane' in landingpage.keys():
-		for block_id, headline in landingpage['BookmarkLane'].items():
-			bookmark_lane = lib_joyn().get_graphql_response('SINGLEBLOCK', {'blockId': block_id})
+	landingpage = deepcopy(lib_joyn().get_landingpage())
+
+	blocks = landingpage.get('page').get('blocks')
+	blocks.extend(landingpage.get('page').get('lazyBlocks'))
+
+	for block in blocks:
+		if block.get('__typename') == 'BookmarkLane':
+			bookmark_lane = lib_joyn().get_graphql_response('LANEBOOKMARK', {'blockId': block['id']})
 			if bookmark_lane.get('block', None) is not None and bookmark_lane.get('block').get('assets', None) is not None:
 				list_items.extend(get_list_items(bookmark_lane['block']['assets'], override_fanart=default_fanart))
 

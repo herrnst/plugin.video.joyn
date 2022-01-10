@@ -464,3 +464,46 @@ class xbmc_helper(Singleton):
                         return prop
                 except Exception as e:
                     self.log_error('Getting android property {} with exception: {}', key, e)
+
+
+    def set_videoinfo(self, listitem, infolabels):
+
+        if self.kodi_version >= 20:
+            videoinfotag = listitem.getVideoInfoTag()
+
+            if infolabels.get('title') is not None:
+                videoinfotag.setTitle(infolabels.get('title'))
+            if infolabels.get('plot') is not None:
+                videoinfotag.setPlot(infolabels.get('plot'))
+            if infolabels.get('mpaa') is not None:
+                videoinfotag.setMpaa(infolabels.get('mpaa'))
+            if infolabels.get('genre') is not None:
+                videoinfotag.setGenres(infolabels.get('genre'))
+            if infolabels.get('studio') is not None:
+                videoinfotag.setStudios(infolabels.get('studio'))
+            if infolabels.get('episode') is not None:
+                videoinfotag.setEpisode(infolabels.get('episode'))
+            if infolabels.get('sortepisode') is not None:
+                videoinfotag.setSortEpisode(infolabels.get('sortepisode'))
+            if infolabels.get('tvshowtitle') is not None:
+                videoinfotag.setTvShowTitle(infolabels.get('tvshowtitle'))
+            if infolabels.get('premiered') is not None:
+                videoinfotag.setPremiered(infolabels.get('premiered'))
+            if infolabels.get('date') is not None:
+                videoinfotag.setDateAdded(infolabels.get('date'))
+            if infolabels.get('aired') is not None:
+                videoinfotag.setFirstAired(infolabels.get('aired'))
+            if infolabels.get('duration') is not None:
+                videoinfotag.setDuration(infolabels.get('duration'))
+            if infolabels.get('season') is not None:
+                videoinfotag.setSeason(infolabels.get('season'))
+            if infolabels.get('sortseason') is not None:
+                videoinfotag.setSortSeason(infolabels.get('sortseason'))
+            if infolabels.get('tagline') is not None:
+                videoinfotag.setTagLine(infolabels.get('tagline'))
+            if infolabels.get('mediatype') is not None:
+                videoinfotag.setMediaType(infolabels.get('mediatype'))
+        else:
+            listitem.setInfo('video', infolabels)
+
+        return listitem

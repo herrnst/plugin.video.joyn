@@ -466,6 +466,10 @@ class xbmc_helper(Singleton):
                     self.log_error('Getting android property {} with exception: {}', key, e)
 
 
+    def get_looseversion(self, version):
+        return LooseVersion(version)
+
+
     def set_videoinfo(self, listitem, infolabels):
 
         if self.kodi_version >= 20:

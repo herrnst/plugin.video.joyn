@@ -36,7 +36,7 @@ class lib_joyn(Singleton):
 		self.config = lib_joyn.get_config()
 		self.auth_token_data = None
 		self.account_info = None
-		self.landingpage = dict()
+		self.landingpage = {}
 		self.user_agent_http_header = None
 		self.addon = None
 		self.epg_cache = None
@@ -766,6 +766,23 @@ class lib_joyn(Singleton):
 				if 'name' in genre.keys():
 					metadata['infoLabels']['genre'].append(genre['name'])
 
+		if (title_type_id == 'SPORTSMATCH' and data.get('sportsCompetition') is not None) \
+				or (title_type_id == 'EXTRA' and data.get('parent') is not None):
+
+			if 'genre' not in metadata['infoLabels']:
+				metadata['infoLabels'].update({'genre': []})
+
+			sports_data = data if title_type_id == 'SPORTSMATCH' else data.get('parent', {})
+
+			if sports_data.get('sports') is not None:
+				for sport in sports_data.get('sports'):
+					if sport.get('title') is not None:
+						metadata['infoLabels']['genre'].append(sport['title'])
+			if sports_data.get('sportsCompetition') is not None and sports_data.get('sportsCompetition', {}).get('title') is not None:
+				metadata['infoLabels']['genre'].append(sports_data['sportsCompetition']['title'])
+			if sports_data.get('sportsStage') is not None and sports_data.get('sportsStage', {}).get('title') is not None:
+				metadata['infoLabels']['genre'].append(sports_data['sportsStage']['title'])
+
 		copyrights = None
 		if 'copyrights' in data.keys() and data.get('copyrights', None) is not None:
 			copyrights = data.get('copyrights', None)
@@ -838,13 +855,21 @@ class lib_joyn(Singleton):
 		        'infoLabels': {},
 		}
 
-		brand_title = brand_livestream_epg['title']
-		if brand_livestream_epg['quality'] == 'HD' and brand_title[-2:] != 'HD':
+		if brand_livestream_epg.get('livestream', {}).get('brand') is not None:
+			brand_title = brand_livestream_epg['livestream']['brand']['title']
+		else:
+			brand_title = brand_livestream_epg['title']
+		if 'quality' in brand_livestream_epg and brand_livestream_epg['quality'] == 'HD' and brand_title[-2:] != 'HD':
 			brand_title = compat._format('{} HD', brand_title)
 		dt_now = datetime.now()
 		epg_metadata['infoLabels'].update({'title': compat._format(xbmc_helper().translation('LIVETV_TITLE'), brand_title, '')})
 
-		for idx, epg_entry in enumerate(brand_livestream_epg['epg']):
+		if 'epg' in brand_livestream_epg:
+			epg_data = brand_livestream_epg['epg']
+		else:
+			epg_data = [brand_livestream_epg]
+
+		for idx, epg_entry in enumerate(epg_data):
 			end_time = xbmc_helper().timestamp_to_datetime(epg_entry['endDate'])
 
 			if end_time is not False and end_time > dt_now:
@@ -857,11 +882,11 @@ class lib_joyn(Singleton):
 				        'mediatype':
 				        'tvshow'
 				})
-				if len(brand_livestream_epg['epg']) > (idx + 1):
+				if len(epg_data) > (idx + 1):
 					epg_metadata['infoLabels'].update({
 					        'plot':
 					        compat._format(xbmc_helper().translation('LIVETV_UNTIL_AND_NEXT'), end_time,
-					                       brand_livestream_epg['epg'][idx + 1]['title'])
+					                       epg_data[idx + 1]['title'])
 					})
 				else:
 					epg_metadata['infoLabels'].update({'plot': compat._format(xbmc_helper().translation('LIVETV_UNTIL'), end_time)})
@@ -960,7 +985,7 @@ class lib_joyn(Singleton):
 
 			if len(bookmarks_list) > 0:
 				for item in items:
-					if item['__typename'] in ['Movie', 'Series']:
+					if item['__typename'] in ['Movie', 'Series', 'Compilation']:
 						item.update({'isBookmarked': item['id'] in bookmarks_list})
 
 		return items

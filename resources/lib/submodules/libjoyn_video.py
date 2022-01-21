@@ -152,7 +152,7 @@ def get_entitlement_data(video_id, stream_type, pin_required=False, invalid_pin=
 	return entitlement_response
 
 
-def get_video_data(video_id, client_data, stream_type, season_id=None, movie_id=None, path=None):
+def get_video_data(video_id, client_data, stream_type, season_id=None, movie_id=None, compilation_id=None, path=None):
 
 	from ..request_helper import base64_encode_urlsafe
 
@@ -199,6 +199,8 @@ def get_video_data(video_id, client_data, stream_type, season_id=None, movie_id=
 				video_data.update({'season_id': season_id})
 			if movie_id is not None:
 				video_data.update({'movie_id': movie_id})
+			if compilation_id is not None:
+				video_data.update({'compilation_id': compilation_id})
 			if path is not None:
 				video_data.update({'path': path})
 

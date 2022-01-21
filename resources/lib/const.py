@@ -143,6 +143,12 @@ CONST = {
             'LOGIN_LABEL': 30136,
             'ASCENDING_LABEL': 30695,
             'DESCENDING_LABEL': 30696,
+            'TV_SHOWS': 30697,
+            'TV_SHOWS_PLOT': 30698,
+            'MOVIES': 30699,
+            'MOVIES_PLOT': 30700,
+            'SPORT': 30701,
+            'SPORT_PLOT': 30702,
         },
 
         'VIEW_MODES': {
@@ -374,6 +380,13 @@ CONST = {
             'HASH': '409f1c6c6bab2c9e78aaa368426e799aa856448908f0a50f28f7a103f0984fa8',
         },
 
+        'COMPILATION': {
+            'OPERATION': 'CompilationDetailPageStatic',
+            'REQUIRED_VARIABLES': ['path'],
+            'BOOKMARKS': True,
+            'HASH': 'e95901ac99ab4902a1eb6bf198be6ac45061f6e0fe23f4aa51027aee797cb7b4',
+        },
+
         'MOVIES': {
             'OPERATION': 'PageMovieDetailStatic',
             'REQUIRED_VARIABLES': ['path'],
@@ -469,7 +482,7 @@ CONST = {
         },
     },
 
-    'CATEGORY_LANES': ['StandardLane', 'CollectionLane', 'FeaturedLane'],
+    'CATEGORY_LANES': ['StandardLane', 'CollectionLane', 'FeaturedLane', 'LiveLane'],
     'COLLECTION_LANES': ['StandardLane'],
     'COLLECTION_GRID': ['Grid'],
 }

@@ -66,7 +66,7 @@ def get_list_items(response_items,
                                          or response_item.get('resumePosition').get('position') == 0):
             continue
 
-        if response_item['__typename'] == 'Movie':
+        if response_item['__typename'] in ['Movie', 'SportsMatch', 'Extra']:
 
             if 'resumePosition' in response_item and 'video' not in response_item:
                 movie_data = lib_joyn().get_graphql_response('MOVIES', {
@@ -76,7 +76,12 @@ def get_list_items(response_items,
                 if movie_data is not None and movie_data.get('page', {}).get('movie') is not None:
                     response_item.update({'video': movie_data.get('page').get('movie').get('video')})
 
-            movie_metadata = lib_joyn().get_metadata(response_item, 'EPISODE', 'MOVIE')
+            if response_item['__typename'] == 'SportsMatch':
+                movie_metadata = lib_joyn().get_metadata(response_item, 'EPISODE', 'SPORTSMATCH')
+            elif response_item['__typename'] == 'Extra':
+                movie_metadata = lib_joyn().get_metadata(response_item, 'EPISODE', 'EXTRA')
+            else:
+                movie_metadata = lib_joyn().get_metadata(response_item, 'EPISODE', 'MOVIE')
             movie_metadata.update(additional_metadata)
 
             movie_metadata['infoLabels'].update({'mediatype': 'movie'})
@@ -121,7 +126,7 @@ def get_list_items(response_items,
                                   path=response_item['path'],
                                   override_fanart=override_fanart))
 
-        elif response_item['__typename'] == 'Episode':
+        elif response_item['__typename'] in ['Episode']:
 
             if 'EPSIODE_AS_SERIES_SEASON' in subtype_merges and 'series' in response_item.keys() and 'season' in response_item.keys():
 
@@ -160,7 +165,22 @@ def get_list_items(response_items,
                                       season_id=response_item.get('season', {}).get('id', ''),
                                       path=response_item.get('path').rsplit('/', 1)[0]))
 
-        elif response_item['__typename'] == 'Series':
+        elif response_item['__typename'] == 'CompilationItem':
+
+            compilation_item_metadata = lib_joyn().get_metadata(response_item, 'EPISODE')
+            compilation_item_metadata['infoLabels'].update({'mediatype': 'movie'})
+
+            video_id = response_item.get('video', {}).get('id', response_item.get('id'))
+            list_items.append(
+                    get_dir_entry(is_folder=False,
+                                  mode='play_video',
+                                  metadata=compilation_item_metadata,
+                                  video_id=video_id,
+                                  client_data=dumps(get_video_client_data(video_id, 'VOD', response_item)),
+                                  override_fanart=override_fanart,
+                                  compilation_id=response_item.get('compilation', {}).get('id', '')))
+
+        elif response_item['__typename'] in ['Series', 'Compilation']:
 
             tvshow_metadata = lib_joyn().get_metadata(response_item, 'TVSHOW')
             tvshow_metadata.update(additional_metadata)
@@ -199,6 +219,26 @@ def get_list_items(response_items,
                                   metadata=teaser_metadata,
                                   override_fanart=override_fanart,
                                   path=response_item['path']))
+
+        elif response_item['__typename'] == 'EpgEntry':
+
+            epg_metadata = lib_joyn().get_epg_metadata(response_item)
+
+            if response_item.get('image') is not None and response_item.get('image').get('url') is not None:
+                epg_metadata['art'].update({
+                        'icon': response_item['image']['url'],
+                        'thumb': response_item['image']['url'],
+                })
+            if response_item.get('livestream').get('brand', {}).get('logo') is not None:
+                epg_metadata['art'].update({'clearlogo': compat._format('{}/profile:original', response_item['livestream']['brand']['logo']['url'].rsplit('/', 1)[0])})
+
+            list_items.append(
+                    get_dir_entry(is_folder=False,
+                                  metadata=epg_metadata,
+                                  mode='play_video',
+                                  client_data=dumps(get_video_client_data(response_item['livestream']['id'], 'LIVE')),
+                                  video_id=response_item['livestream']['id'],
+                                  stream_type='LIVE'))
 
     return list_items
 
@@ -242,6 +282,39 @@ def index():
             },
                           mode='channels',
                           stream_type='LIVE'))
+
+    list_items.append(
+            get_dir_entry(metadata={
+                    'infoLabels': {
+                            'title': xbmc_helper().translation('TV_SHOWS'),
+                            'plot': xbmc_helper().translation('TV_SHOWS_PLOT'),
+                    },
+                    'art': {}
+            },
+                          mode='categories',
+                          path='/serien'))
+
+    list_items.append(
+            get_dir_entry(metadata={
+                    'infoLabels': {
+                            'title': xbmc_helper().translation('MOVIES'),
+                            'plot': xbmc_helper().translation('MOVIES_PLOT'),
+                    },
+                    'art': {}
+            },
+                          mode='categories',
+                          path='/filme'))
+
+    list_items.append(
+            get_dir_entry(metadata={
+                    'infoLabels': {
+                            'title': xbmc_helper().translation('SPORT'),
+                            'plot': xbmc_helper().translation('SPORT_PLOT'),
+                    },
+                    'art': {}
+            },
+                          mode='categories',
+                          path='/sport'))
 
     if xbmc_helper().get_bool_setting('show_categories_in_main_menu'):
         list_items.extend(categories('', '', True))
@@ -475,6 +548,40 @@ def season_episodes(season_id, title):
     xbmc_helper().set_folder(list_items, pluginurl, pluginhandle, pluginquery, 'EPISODES', title)
 
 
+def get_compilation_items(compilation_id, compilation_path, title):
+
+    from .submodules.plugin_favorites import get_favorite_entry
+    list_items = []
+    compilation_items = lib_joyn().get_graphql_response('COMPILATION', {'path': compilation_path}).get('page', {})
+    override_fanart = default_fanart
+
+    if compilation_items is not None and compilation_items.get('compilation', None) is not None and isinstance(
+            compilation_items.get('compilation').get('compilationItems', None),
+            list) and len(compilation_items.get('compilation').get('compilationItems')) > 0:
+
+        first_item = compilation_items.get('compilation').get('compilationItems')[0]
+        if 'compilation' in first_item.keys():
+            compilation_metadata = lib_joyn().get_metadata(first_item['compilation'], 'TVSHOW')
+            if 'fanart' in compilation_metadata['art']:
+                override_fanart = compilation_metadata['art']['fanart']
+
+        list_items = get_list_items(compilation_items.get('compilation').get('compilationItems'), override_fanart=override_fanart)
+
+    if len(list_items) == 0:
+        from xbmcplugin import endOfDirectory
+        endOfDirectory(handle=pluginhandle, succeeded=False)
+
+        return xbmc_helper().notification(xbmc_helper().translation('TV_SHOW'),
+                                          xbmc_helper().translation('MSG_NO_CONTENT'), default_icon)
+
+    addSortMethod(pluginhandle, SORT_METHOD_UNSORTED)
+    addSortMethod(pluginhandle, SORT_METHOD_LABEL)
+    addSortMethod(pluginhandle, SORT_METHOD_DURATION)
+
+    list_items.append(get_favorite_entry({'compilation_id': compilation_id, 'compilation_path': compilation_path}, 'TV_SHOW'))
+    xbmc_helper().set_folder(list_items, pluginurl, pluginhandle, pluginquery, 'EPISODES', title)
+
+
 def search(stream_type, title, search_term=''):
 
     if len(search_term) != 0:
@@ -501,16 +608,24 @@ def search(stream_type, title, search_term=''):
                                        compat._format(xbmc_helper().translation('MSG_NO_SEARCH_RESULTS'), _search_term), default_icon)
 
 
-def categories(stream_type, title, return_list_items=False):
+def categories(title, path, return_list_items=False):
 
     list_items = []
-    landingpage = deepcopy(lib_joyn().get_landingpage())
+    landingpage = deepcopy(lib_joyn().get_landingpage(path))
 
     blocks = landingpage.get('page').get('blocks')
     blocks.extend(landingpage.get('page').get('lazyBlocks'))
 
     for block in blocks:
         if block.get('__typename') in CONST['CATEGORY_LANES']:
+            viewtype = 'TV_SHOWS'
+            if block.get('__typename') == 'CollectionLane':
+                viewtype = 'CATEORIES'
+            elif block.get('__typename') == 'CollectionLane':
+                viewtype = 'CATEORIES'
+            elif block.get('__typename') == 'LiveLane':
+                viewtype = 'LIVE_TV'
+
             list_items.append(
                     get_dir_entry(metadata={
                             'infoLabels': {
@@ -520,7 +635,7 @@ def categories(stream_type, title, return_list_items=False):
                             'art': {}
                     },
                                   mode='category',
-                                  viewtype='TV_SHOWS' if block.get('__typename') != 'CollectionLane'  else 'CATEORIES',
+                                  viewtype=viewtype,
                                   block_id=block['id']))
     if return_list_items is True:
         return list_items
@@ -618,7 +733,7 @@ def play_movie(path):
                                           xbmc_helper().translation('MSG_NO_CONTENT'), default_icon)
 
 
-def play_video(video_id, client_data, stream_type, season_id=None, movie_id=None, path=None, retries=0):
+def play_video(video_id, client_data, stream_type, season_id=None, movie_id=None, compilation_id=None, path=None, retries=0):
 
     from .mpd_parser import mpd_parser as mpd_parser
     from xbmc import getCondVisibility
@@ -638,7 +753,7 @@ def play_video(video_id, client_data, stream_type, season_id=None, movie_id=None
             exit(0)
     try:
         from .submodules.libjoyn_video import get_video_data
-        video_data = get_video_data(video_id, loads(client_data), stream_type, season_id, movie_id, path)
+        video_data = get_video_data(video_id, loads(client_data), stream_type, season_id, movie_id, compilation_id, path)
 
         xbmc_helper().log_debug('Got video data: {}', video_data)
 
@@ -731,6 +846,8 @@ def play_video(video_id, client_data, stream_type, season_id=None, movie_id=None
                 add_lastseen(season_id=video_data['season_id'], path=video_data['path'], max_lastseen=CONST['LASTSEEN_ITEM_COUNT'])
             elif video_data.get('movie_id') and video_data.get('path'):
                 add_lastseen(movie_id=video_data['movie_id'], path=video_data['path'], max_lastseen=CONST['LASTSEEN_ITEM_COUNT'])
+            elif 'compilation_id' in video_data.keys() and video_data['compilation_id'] is not None:
+                add_lastseen(compilation_id=video_data['compilation_id'], path=video_data['path'], max_lastseen=CONST['LASTSEEN_ITEM_COUNT'])
 
         else:
             raise ValueError(compat._format('Could not get parser: {}', parser))
@@ -739,7 +856,7 @@ def play_video(video_id, client_data, stream_type, season_id=None, movie_id=None
         if retries < CONST.get('MAX_VIDEO_TRIES'):
             xbmc_helper().log_notice('Getting videostream / manifest failed with Exception: {} - current try {} of {}', e, retries,
                                      CONST.get('MAX_VIDEO_TRIES'))
-            play_video(video_id, client_data, stream_type, season_id=season_id, movie_id=movie_id, retries=(retries + 1))
+            play_video(video_id, client_data, stream_type, season_id=season_id, movie_id=movie_id, compilation_id=compilation_id, path=path, retries=(retries + 1))
         else:
             succeeded = False
             xbmc_helper().log_error('Getting videostream / manifest failed with Exception: {}', e)
@@ -770,7 +887,7 @@ def get_dir_entry(mode,
                   favorite_item=None,
                   title_prefix='',
                   client_data='',
-
+                  compilation_id='',
                   viewtype='',
                   path=''):
 
@@ -788,6 +905,7 @@ def get_dir_entry(mode,
             'fav_type': fav_type,
             'title': compat._encode(title_prefix) + compat._encode(metadata['infoLabels'].get('title', '')),
             'client_data': client_data,
+            'compilation_id': compilation_id,
             'viewtype': viewtype,
             'path': path,
     }
@@ -837,6 +955,8 @@ def get_dir_entry(mode,
             asset_id = tv_show_id
         elif (mode == 'play_video' or mode == 'play_movie') and movie_id != '':
             asset_id = movie_id
+        elif mode == 'compilation_items' and compilation_id != '':
+            asset_id = compilation_id
 
         if asset_id is not None:
             if metadata.get('is_bookmarked', False) is True:
@@ -933,6 +1053,11 @@ def run(_pluginurl, _pluginhandle, _pluginquery, addon):
                                    stream_type=stream_type,
                                    movie_id=params['movie_id'],
                                    path=params['path'])
+                    elif 'compilation_id' in param_keys:
+                        play_video(video_id=params['video_id'],
+                                   client_data=params['client_data'],
+                                   stream_type=stream_type,
+                                   compilation_id=params['compilation_id'])
                     else:
                         play_video(video_id=params['video_id'], client_data=params['client_data'], stream_type=stream_type)
                 elif stream_type == 'LIVE':
@@ -940,6 +1065,9 @@ def run(_pluginurl, _pluginhandle, _pluginquery, addon):
                     play_video(video_id=params['video_id'],
                                client_data=params.get('client_data', dumps(get_video_client_data(params['video_id'], stream_type))),
                                stream_type=stream_type)
+
+            elif mode == 'compilation_items' and 'compilation_id' in param_keys and 'path' in param_keys:
+                get_compilation_items(params['compilation_id'], params['path'], title)
 
             elif mode == 'channels':
                 channels(stream_type, title)
@@ -951,7 +1079,7 @@ def run(_pluginurl, _pluginhandle, _pluginquery, addon):
                 search(stream_type, title, search_term=params.get('search_term', ''))
 
             elif mode == 'categories':
-                categories(stream_type, title)
+                categories(title, params.get('path', '/'))
 
             elif mode == 'category' and 'block_id' in param_keys:
                 category(params['block_id'], title, params.get('viewtype', 'TV_SHOWS'))

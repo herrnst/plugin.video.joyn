@@ -615,3 +615,27 @@ msgstr "aufsteigend"
 msgctxt "#30696"
 msgid "descending"
 msgstr "absteigend"
+
+msgctxt "#30697"
+msgid "TV Shows"
+msgstr "Serien"
+
+msgctxt "#30698"
+msgid "On Joyn you will find a variety of series and shows. Let yourself be entertained, whether you missed the episode on TV or are looking for a new favorite series."
+msgstr "Auf Joyn findest du eine Vielzahl an Serien und Shows. Lass dich unterhalten, egal ob du die Folge im TV verpasst hast oder eine neue Lieblingsserie suchst."
+
+msgctxt "#30699"
+msgid "Movies"
+msgstr "Filme"
+
+msgctxt "#30700"
+msgid "Popcorn ready for movie night? On Joyn you can watch many movies for free. You can find the entire selection here."
+msgstr "Popcorn fertig für den Filmabend? Auf Joyn kannst du viele Filme kostenlos anschauen. Hier findest du die gesamte Auswahl."
+
+msgctxt "#30701"
+msgid "Sport"
+msgstr "Sport"
+
+msgctxt "#30702"
+msgid "On Joyn you will find a wide range of sports - live or after TV broadcasts. From football to cycling - athletes' hearts beat faster here."
+msgstr "Auf Joyn findest du ein großes Sportangebot – live oder nach TV-Ausstrahlung. Von Football bis Radsport – hier schlagen Sportlerherzen höher."

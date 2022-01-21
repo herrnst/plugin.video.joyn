@@ -120,6 +120,11 @@ def drop_favorites(favorite_item, default_icon, silent=False, fav_type=''):
 			favorites.remove(favorite)
 			found = True
 
+		elif 'compilation_id' in favorite_item.keys() and 'compilation_id' in favorite.keys(
+		) and favorite_item['compilation_id'] == favorite['compilation_id']:
+			favorites.remove(favorite)
+			found = True
+
 	xbmc_helper().set_json_data('favorites', favorites)
 
 	if silent is False and found is True:
@@ -154,6 +159,10 @@ def check_favorites(favorite_item):
 
 		elif 'collection_id' in favorite_item.keys() and 'collection_id' in favorite.keys(
 		) and favorite_item['collection_id'] == favorite['collection_id']:
+			return True
+
+		elif 'compilation_id' in favorite_item.keys() and 'compilation_id' in favorite.keys(
+		) and favorite_item['compilation_id'] == favorite['compilation_id']:
 			return True
 
 	return False
@@ -251,6 +260,13 @@ def show_favorites(title, pluginurl, pluginhandle, pluginquery, default_fanart, 
 						if favorite_item['collection_id'] == asset.get('id'):
 							list_items.extend(get_list_items([asset], additional_metadata=add_meta, override_fanart=default_fanart))
 							break
+
+		elif favorite_item.get('compilation_id', None) is not None:
+			compilation_data = lib_joyn().get_graphql_response('COMPILATION', {'path': favorite_item['compilation_path']})
+			if compilation_data.get('page', {}).get('compilation', None) is not None:
+				compilation_data['page']['compilation'].update({'path': compilation_data['page']['path']})
+				list_items.extend(
+				        get_list_items([compilation_data['page']['compilation']], additional_metadata=add_meta, override_fanart=default_fanart))
 
 	if len(list_items) == 0:
 		return xbmc_helper().notification(xbmc_helper().translation('WATCHLIST'),

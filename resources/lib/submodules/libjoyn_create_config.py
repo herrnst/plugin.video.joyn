@@ -153,7 +153,7 @@ def create_config(cached_config, addon_version):
 				for entry in webpack_json:
 					for key, value in entry.get('items').items():
 						try:
-							chunks_src = compat._format('{}/{}{}{}.js', match.rsplit('/', 1)[0], key, entry.get('sep') , value)
+							chunks_src = compat._format('{}/{}{}{}.js', preload_js_url.rsplit('/', 1)[0], key, entry.get('sep') , value)
 							chunks_js = request_helper.get_url(chunks_src, config)
 
 							if not 'entitlementBaseUrl' in config:

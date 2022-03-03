@@ -131,17 +131,29 @@ def create_config(cached_config, addon_version):
 	if use_outdated_cached_config is False:
 		found_configs = 0
 		do_break = False
-		for match in preload_scripts:
-			if match.find('webpack') != -1:
-				if not match.startswith('http'):
-					match = urljoin(CONST['BASE_URL'], match)
-				webpack_js = request_helper.get_url(match, config)
-				webpack_match = search('\+\"\.\"\+(.*?})', webpack_js)
-				if webpack_match:
-					webpack_json = loads(sub(r'\b([0-9]+):("[^"]+"[,\n}])', r'"\1":\2', webpack_match.group(1)), object_pairs_hook=OrderedDict)
-					for key, value in webpack_json.items():
+		for preload_js_url in preload_scripts:
+			if preload_js_url.find('webpack') != -1:
+				if not preload_js_url.startswith('http'):
+					preload_js_url = urljoin(CONST['BASE_URL'], preload_js_url)
+
+				webpack_json = []
+				webpack_js = request_helper.get_url(preload_js_url, config)
+
+				webpack_matches = findall('([0-9]+)-([^"]+).js', webpack_js)
+				if webpack_matches:
+					chunks = dict()
+					for webpack_match in webpack_matches:
+						chunks.update({webpack_match[0]: webpack_match[1]})
+					webpack_json.append(dict(sep='-', items=chunks))
+
+				webpack_matches = search('\+\"\.\"\+(.*?})', webpack_js)
+				if webpack_matches:
+					webpack_json.append(dict(sep='.', items=loads(sub(r'([0-9]+):("[^"]+"[,\n}])', r'"\1":\2', webpack_matches.group(1)))))
+
+				for entry in webpack_json:
+					for key, value in entry.get('items').items():
 						try:
-							chunks_src = compat._format('{}/{}.{}.js', match.rsplit('/', 1)[0], key, value)
+							chunks_src = compat._format('{}/{}{}{}.js', match.rsplit('/', 1)[0], key, entry.get('sep') , value)
 							chunks_js = request_helper.get_url(chunks_src, config)
 
 							if not 'entitlementBaseUrl' in config:
@@ -163,6 +175,8 @@ def create_config(cached_config, addon_version):
 							pass
 						if do_break:
 							break
+					if do_break:
+						break
 			if do_break:
 				break
 

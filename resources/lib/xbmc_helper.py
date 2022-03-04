@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import datetime, time
 import os.path
 from distutils.version import LooseVersion
 from io import open as io_open
@@ -511,3 +512,8 @@ class xbmc_helper(Singleton):
             listitem.setInfo('video', infolabels)
 
         return listitem
+
+
+    def getPrimetimeAsTimestamp(self):
+        dt_primetime = datetime.utcnow().replace(hour=20, minute=15, second=0, microsecond=0)
+        return int(time.mktime(dt_primetime.utctimetuple()) * 1000 + dt_primetime.microsecond / 1000)

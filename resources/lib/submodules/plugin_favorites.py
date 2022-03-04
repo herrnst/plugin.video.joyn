@@ -248,7 +248,7 @@ def show_favorites(title, pluginurl, pluginhandle, pluginquery, default_fanart, 
 						break
 
 		elif favorite_item.get('channel_id', None) is not None:
-			channel_data = lib_joyn().get_graphql_response('CHANNEL', {'path': favorite_item.get('channel_path')})
+			channel_data = lib_joyn().get_graphql_response('CHANNEL', {'path': favorite_item.get('channel_path'), 'primeTime': xbmc_helper().getPrimetimeAsTimestamp()})
 			if channel_data.get('page') is not None:
 				list_items.extend(get_list_items([channel_data.get('page')], additional_metadata=add_meta, override_fanart=default_fanart))
 

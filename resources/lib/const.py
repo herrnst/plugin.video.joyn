@@ -368,9 +368,9 @@ CONST = {
 
         'CHANNEL': {
             'OPERATION': 'PageOverviewChannel',
-            'REQUIRED_VARIABLES': ['path', 'first', 'offset'],
+            'REQUIRED_VARIABLES': ['path', 'first', 'offset', 'primeTime'],
             'BOOKMARKS': True,
-            'HASH': 'c840f7161986a358bc0eb59b981333e1cce94fb14deac9a2d8dc2157eb37c999',
+            'HASH': '112134b0847484322a75a16adaf3c7b5e403b346ee70cc1f635988bc678c20ec',
         },
 
         'COLLECTION': {

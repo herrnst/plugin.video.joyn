@@ -435,7 +435,7 @@ def tvshows(channel_id, channel_path, title):
     from .submodules.plugin_favorites import get_favorite_entry
     list_items = []
 
-    tvshows = lib_joyn().get_graphql_response('CHANNEL', {'path': channel_path})
+    tvshows = lib_joyn().get_graphql_response('CHANNEL', {'path': channel_path, 'primeTime': xbmc_helper().getPrimetimeAsTimestamp()})
     if tvshows is not None and tvshows.get('page', None) is not None and tvshows.get('page').get('assets', None) is not None:
         list_items = get_list_items(tvshows['page']['assets'], override_fanart=default_fanart)
 

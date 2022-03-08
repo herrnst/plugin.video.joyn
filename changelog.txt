@@ -144,3 +144,10 @@ v2.95.4.0
 fixed config init
 v2.95.4.1
 fixed config init on some devices
+v2.95.5.0
+fix typo in addon.xml
+search does not return the same results as the website
+refactoring for newer API
+added movies, tv shows and sport section
+delete incompatible data
+fixes

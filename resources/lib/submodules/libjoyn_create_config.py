@@ -177,6 +177,40 @@ def create_config(cached_config, addon_version):
 							break
 					if do_break:
 						break
+
+			elif preload_js_url.find('_buildManifest') != -1:
+				if not preload_js_url.startswith('http'):
+					preload_js_url = urljoin(CONST['BASE_URL'], preload_js_url)
+				if parsed_preload_js_url is None:
+					parsed_preload_js_url = urlparse(preload_js_url)
+
+				manifest_js = request_helper.get_url(preload_js_url, config)
+				manifest_matches = list(reversed(findall('(static\/chunks\/\d{3,4}-.*?.js)', manifest_js)))
+
+				for manifest_match in manifest_matches:
+					try:
+						chunks_src = compat._format('{}/{}', preload_js_url.rsplit('/', 3)[0], manifest_match)
+						chunks_js = request_helper.get_url(chunks_src, config)
+
+						if not 'entitlementBaseUrl' in config:
+							entitlementBaseUrl = search('entitlementBaseUrl.*?"([^"]*)', chunks_js)
+							if entitlementBaseUrl and entitlementBaseUrl.group(1).startswith('http'):
+								config['entitlementBaseUrl'] = entitlementBaseUrl.group(1)
+								found_configs += 1
+
+						if not 'playbackSourceApiBaseUrl' in config:
+							playbackSourceApiBaseUrl = search('playbackSourceApiBaseUrl.*?"([^"]*)', chunks_js)
+							if playbackSourceApiBaseUrl and playbackSourceApiBaseUrl.group(1).startswith('http'):
+								config['playbackSourceApiBaseUrl'] = playbackSourceApiBaseUrl.group(1)
+								found_configs += 1
+
+						if 'entitlementBaseUrl' in config and 'playbackSourceApiBaseUrl' in config:
+							do_break = True
+					except Exception as e:
+						xbmc_helper().log_notice('Failed to load url: {} with exception {}', chunks_src, e)
+						pass
+					if do_break:
+						break
 			if do_break:
 				break
 

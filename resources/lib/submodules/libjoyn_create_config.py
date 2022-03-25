@@ -38,7 +38,7 @@ def create_config(cached_config, addon_version):
 		os_uname = ['Linux', 'hostname', 'kernel-ver', 'kernel-sub-ver', 'x86_64']
 
 	# android
-	user_agent_suffix = 'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Mobile Safari/537.36'
+	user_agent_suffix = 'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.82 Safari/537.36'
 	if getCondVisibility('System.Platform.Android'):
 		config['USER_AGENT'] = compat._format('Mozilla/5.0 (Linux; Android {}; {}) {}',
 		        xbmc_helper().get_android_prop('ro.build.version.release', True) or '12',

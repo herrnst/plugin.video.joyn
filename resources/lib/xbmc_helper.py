@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import datetime, time
-import os.path
+from datetime import datetime, timedelta
 from distutils.version import LooseVersion
 from io import open as io_open
-from datetime import datetime, timedelta
+from os.path import exists, join
+from time import mktime
 from xbmc import executeJSONRPC, executebuiltin, getCondVisibility, getInfoLabel, getSkinDir, log, \
     sleep as xbmc_sleep, LOGERROR, LOGDEBUG
 from xbmcplugin import setContent, endOfDirectory, addDirectoryItems, setPluginCategory
@@ -87,16 +87,16 @@ class xbmc_helper(Singleton):
     def get_file_path(self, directory, filename):
 
         xbmc_profile_path = translatePath(self.get_addon().getAddonInfo('profile')).encode('utf-8').decode('utf-8')
-        xbmc_directory = translatePath(os.path.join(xbmc_profile_path, directory, '')).encode('utf-8').decode('utf-8')
+        xbmc_directory = translatePath(join(xbmc_profile_path, directory, '')).encode('utf-8').decode('utf-8')
 
         if not exists(xbmc_directory):
             mkdirs(xbmc_directory)
 
-        return translatePath(os.path.join(xbmc_directory, filename)).encode('utf-8').decode('utf-8')
+        return translatePath(join(xbmc_directory, filename)).encode('utf-8').decode('utf-8')
 
 
     def get_resource_filepath(self, filename, subdir):
-        return translatePath(os.path.join(self.get_addon().getAddonInfo('path'), 'resources', subdir,
+        return translatePath(join(self.get_addon().getAddonInfo('path'), 'resources', subdir,
                                           filename)).encode('utf-8').decode('utf-8')
 
 
@@ -107,19 +107,19 @@ class xbmc_helper(Singleton):
     def remove_dir(self, directory):
 
         xbmc_profile_path = translatePath(self.get_addon().getAddonInfo('profile')).encode('utf-8').decode('utf-8')
-        xbmc_directory = translatePath(os.path.join(xbmc_profile_path, directory)).encode('utf-8').decode('utf-8')
+        xbmc_directory = translatePath(join(xbmc_profile_path, directory)).encode('utf-8').decode('utf-8')
 
         remove_ok = 1
 
         dirs, files = listdir(xbmc_directory)
         for _file in files:
             if self.get_bool_setting('force_clean_all_files') is True or _file not in CONST['CACHE_FILES_KEEP']:
-                remove_ok = delete(os.path.join(xbmc_directory, _file))
+                remove_ok = delete(join(xbmc_directory, _file))
 
         for directory in dirs:
             if directory != '.' and directory != '..':
                 directory = directory.decode("utf-8")
-                remove_ok = self.remove_dir(os.path.join(xbmc_directory, directory))
+                remove_ok = self.remove_dir(join(xbmc_directory, directory))
 
         return remove_ok == 1
 
@@ -371,7 +371,7 @@ class xbmc_helper(Singleton):
 
     def get_file_contents(self, file_path):
         data = None
-        if os.path.exists(file_path):
+        if exists(file_path):
             with io_open(file=file_path, mode='r', encoding='utf-8') as data_infile:
                 data = data_infile.read()
         return data
@@ -393,7 +393,7 @@ class xbmc_helper(Singleton):
 
     def del_data(self, filename, dir_type='DATA_DIR'):
         data_file_path = self.get_file_path(CONST[dir_type], filename)
-        if os.path.exists(data_file_path):
+        if exists(data_file_path):
             delete(data_file_path)
 
 
@@ -516,4 +516,4 @@ class xbmc_helper(Singleton):
 
     def getPrimetimeAsTimestamp(self):
         dt_primetime = datetime.utcnow().replace(hour=20, minute=15, second=0, microsecond=0)
-        return int(time.mktime(dt_primetime.utctimetuple()) * 1000 + dt_primetime.microsecond / 1000)
+        return int(mktime(dt_primetime.utctimetuple()) * 1000 + dt_primetime.microsecond / 1000)

@@ -317,7 +317,7 @@ def index():
                           path='/sport'))
 
     if xbmc_helper().get_bool_setting('show_categories_in_main_menu'):
-        list_items.extend(categories('', '', True))
+        list_items.extend(categories('', '/', True))
     else:
         list_items.append(
                 get_dir_entry(metadata={

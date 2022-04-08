@@ -151,3 +151,7 @@ refactoring for newer API
 added movies, tv shows and sport section
 delete incompatible data
 fixes
+v2.95.5.1
+fixed categories in main menu
+updated operation hashes
+fixed config init

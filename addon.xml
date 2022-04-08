@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.joyn" name="Joyn" version="2.95.5.0" provider-name="knaerzche, Maven, nst">
+<addon id="plugin.video.joyn" name="Joyn" version="2.95.5.1" provider-name="knaerzche, Maven, nst">
 	<requires>
 		<import addon="inputstream.adaptive" version="2.5.0"/>
 		<import addon="script.module.inputstreamhelper" version="0.4.4"/>
@@ -33,13 +33,10 @@
 			<screenshot>resources/media/screenshot03.jpg</screenshot>
 		</assets>
 		<news>
-v2.95.5.0
-- fix typo in addon.xml
-- search does not return the same results as the website
-- refactoring for newer API
-- added movies, tv shows and sport section
-- delete incompatible data
-- fixes
+v2.95.5.1
+- fixed categories in main menu
+- updated operation hashes
+- fixed config init
 		</news>
 	</extension>
 </addon>

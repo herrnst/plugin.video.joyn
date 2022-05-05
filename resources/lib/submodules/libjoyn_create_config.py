@@ -162,13 +162,13 @@ def create_config(cached_config, addon_version):
 									config['entitlementBaseUrl'] = entitlementBaseUrl.group(1)
 									found_configs += 1
 
-							if not 'playbackSourceApiBaseUrl' in config:
-								playbackSourceApiBaseUrl = search('playbackSourceApiBaseUrl.*?"([^"]*)', chunks_js)
-								if playbackSourceApiBaseUrl and playbackSourceApiBaseUrl.group(1).startswith('http'):
-									config['playbackSourceApiBaseUrl'] = playbackSourceApiBaseUrl.group(1)
+							if not 'playbackApiBaseUrl' in config:
+								playbackApiBaseUrl = search('playbackApiBaseUrl.*?"([^"]*)', chunks_js)
+								if playbackApiBaseUrl and playbackApiBaseUrl.group(1).startswith('http'):
+									config['playbackApiBaseUrl'] = playbackApiBaseUrl.group(1)
 									found_configs += 1
 
-							if 'entitlementBaseUrl' in config and 'playbackSourceApiBaseUrl' in config:
+							if 'entitlementBaseUrl' in config and 'playbackApiBaseUrl' in config:
 								do_break = True
 						except Exception as e:
 							xbmc_helper().log_notice('Failed to load url: {} with exception {}', chunks_src, e)
@@ -198,13 +198,13 @@ def create_config(cached_config, addon_version):
 								config['entitlementBaseUrl'] = entitlementBaseUrl.group(1)
 								found_configs += 1
 
-						if not 'playbackSourceApiBaseUrl' in config:
-							playbackSourceApiBaseUrl = search('playbackSourceApiBaseUrl.*?"([^"]*)', chunks_js)
-							if playbackSourceApiBaseUrl and playbackSourceApiBaseUrl.group(1).startswith('http'):
-								config['playbackSourceApiBaseUrl'] = playbackSourceApiBaseUrl.group(1)
+						if not 'playbackApiBaseUrl' in config:
+							playbackApiBaseUrl = search('playbackApiBaseUrl.*?"([^"]*)', chunks_js)
+							if playbackApiBaseUrl and playbackApiBaseUrl.group(1).startswith('http'):
+								config['playbackApiBaseUrl'] = playbackApiBaseUrl.group(1)
 								found_configs += 1
 
-						if 'entitlementBaseUrl' in config and 'playbackSourceApiBaseUrl' in config:
+						if 'entitlementBaseUrl' in config and 'playbackApiBaseUrl' in config:
 							do_break = True
 					except Exception as e:
 						xbmc_helper().log_notice('Failed to load url: {} with exception {}', chunks_src, e)

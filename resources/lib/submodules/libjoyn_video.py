@@ -19,9 +19,9 @@ elif compat.PY3:
 	from json import dumps
 
 
-def build_signature(video_id, encoded_client_data, entitlement_token):
+def build_signature(encoded_client_data, entitlement_token):
 
-	sha_input = compat._format('{},{},{}{}', video_id, entitlement_token, encoded_client_data,
+	sha_input = compat._format('{},{}{}', encoded_client_data, entitlement_token,
 	                           compat._decode(b64decode(CONST.get('SIGNATURE_KEY'))))
 
 	xbmc_helper().log_debug('Build signature: {}', sha_input)
@@ -152,28 +152,34 @@ def get_entitlement_data(video_id, stream_type, pin_required=False, invalid_pin=
 	return entitlement_response
 
 
-def get_video_data(video_id, client_data, stream_type, season_id=None, movie_id=None, compilation_id=None, path=None):
+def get_video_data(video_id, stream_type, season_id=None, movie_id=None, compilation_id=None, path=None):
 
-	from ..request_helper import base64_encode_urlsafe
-
-	video_url = compat._format('{}/playout/{}/{}',
-	                           lib_joyn().config['playbackSourceApiBaseUrl'],
-	                           'channel' if stream_type == 'LIVE' else 'video', video_id)
-	xbmc_helper().log_debug('get_video_data: video url: {} - client data {}', video_url, client_data)
-
-	video_data = {}
+	video_data = dict()
 	entitlement_data = get_entitlement_data(video_id, stream_type)
-	encoded_client_data = base64_encode_urlsafe(dumps(client_data))
 
 	if entitlement_data.get('entitlement_token', None) is not None:
-		from ..request_helper import get_json_response
-		video_data_params = {
-		        'entitlement_token': entitlement_data['entitlement_token'],
-		        'clientData': encoded_client_data,
-		        'sig': build_signature(video_id, encoded_client_data, entitlement_data['entitlement_token']),
-		}
+		from ..request_helper import base64_encode_urlsafe, get_json_response
 
-		video_data_headers = [('Content-Type', 'application/x-www-form-urlencoded charset=utf-8')]
+		video_url = compat._format('{}/{}/{}/playlist',
+								   lib_joyn().config['playbackApiBaseUrl'],
+								   'channel' if stream_type == 'LIVE' else 'asset', video_id)
+
+		video_data_payload = dumps(dict(
+				manufacturer='unknown',
+				platform='browser',
+				maxSecurityLevel=1,
+				model='unknown',
+				protectionSystem='widevine',
+				streamingFormat='dash',
+		        enableSubtitles=True,
+				maxResolution=1080,
+				version='v1',
+		)).replace(' ', '')
+
+		xbmc_helper().log_debug('get_video_data: video url: {} - video payload {}', video_url, video_data_payload)
+
+		video_data_headers = [('Authorization', compat._format('Bearer {}', entitlement_data['entitlement_token'])),
+								('Content-Type', 'application/json')]
 
 		xbmc_helper().log_debug('force_playready: {}, is_android: {}',
 		                        xbmc_helper().get_bool_setting('force_playready'),
@@ -182,16 +188,20 @@ def get_video_data(video_id, client_data, stream_type, season_id=None, movie_id=
 		if xbmc_helper().get_bool_setting('force_playready') is True and lib_joyn().config.get('IS_ANDROID', False) is True:
 			video_data_headers.append(('User-Agent', CONST['EDGE_UA']))
 
+		video_data_params = dict(signature=build_signature(video_data_payload, entitlement_data['entitlement_token']))
+
 		video_data = get_json_response(url=video_url,
 		                               config=lib_joyn().config,
 		                               params=video_data_params,
 		                               headers=video_data_headers,
-		                               post_data='false',
+		                               post_data=video_data_payload,
 		                               no_cache=True,
 		                               silent=True)
 
-		if isinstance(video_data, dict) and video_data.get('streamingFormat', '') == 'dash' and video_data.get('videoUrl', None) is not None:
-			mpdparser = get_mpd_parser(url=video_data.get('videoUrl'), stream_type=stream_type, video_id=video_id)
+		video_data.update(dict(drm='widevine', streamingFormat='dash'))
+
+		if isinstance(video_data, dict) and video_data.get('streamingFormat', '') == 'dash' and video_data.get('manifestUrl', None) is not None:
+			mpdparser = get_mpd_parser(url=video_data.get('manifestUrl'), stream_type=stream_type, video_id=video_id)
 			if mpdparser is not None:
 				video_data.update({'parser': mpdparser})
 

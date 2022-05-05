@@ -753,7 +753,7 @@ def play_video(video_id, client_data, stream_type, season_id=None, movie_id=None
             exit(0)
     try:
         from .submodules.libjoyn_video import get_video_data
-        video_data = get_video_data(video_id, loads(client_data), stream_type, season_id, movie_id, compilation_id, path)
+        video_data = get_video_data(video_id, stream_type, season_id, movie_id, compilation_id, path)
 
         xbmc_helper().log_debug('Got video data: {}', video_data)
 

@@ -513,7 +513,3 @@ class xbmc_helper(Singleton):
 
         return listitem
 
-
-    def getPrimetimeAsTimestamp(self):
-        dt_primetime = datetime.utcnow().replace(hour=20, minute=15, second=0, microsecond=0)
-        return int(mktime(dt_primetime.utctimetuple()) * 1000 + dt_primetime.microsecond / 1000)

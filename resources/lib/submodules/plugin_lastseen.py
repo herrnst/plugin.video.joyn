@@ -99,7 +99,7 @@ def show_lastseen(max_lastseen_count, default_fanart):
 					        'licenseFilter': lib_joyn().get_license_filter()
 					})
 
-					if tvshow_data.get('page').get('series', None) is not None:
+					if tvshow_data.get('page') is not None and tvshow_data.get('page').get('series') is not None:
 						for season in tvshow_data.get('page').get('series').get('allSeasons'):
 							if lastseen_item['season_id'] == season['id'] and season['numberOfEpisodes'] > 0:
 								season_metadata = lib_joyn().get_metadata(tvshow_data.get('page').get('series'), 'TVSHOW')
@@ -125,7 +125,7 @@ def show_lastseen(max_lastseen_count, default_fanart):
 					movie_data = lib_joyn().get_graphql_response('MOVIES', {
 					        'path': lastseen_item['path'],
 					})
-					if lastseen_item['movie_id'] not in movie_ids and movie_data.get('page', {}).get('movie') is not None:
+					if lastseen_item['movie_id'] not in movie_ids and movie_data.get('page') is not None and movie_data.get('page').get('movie') is not None:
 						movie_metadata = lib_joyn().get_metadata(movie_data.get('page').get('movie'), 'EPISODE', 'MOVIE')
 
 						movie_metadata['infoLabels'].update({

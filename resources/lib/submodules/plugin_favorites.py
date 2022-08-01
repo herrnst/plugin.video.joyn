@@ -183,10 +183,6 @@ def show_favorites(title, pluginurl, pluginhandle, pluginquery, default_fanart, 
 		return xbmc_helper().notification(xbmc_helper().translation('WATCHLIST'),
 		                                  xbmc_helper().translation('MSG_NO_FAVS_YET'), default_icon)
 
-	addSortMethod(pluginhandle, SORT_METHOD_UNSORTED)
-	addSortMethod(pluginhandle, SORT_METHOD_LABEL)
-	addSortMethod(pluginhandle, SORT_METHOD_DATEADDED)
-
 	for favorite_item in favorites:
 		if 'added' in favorite_item.keys():
 			add_meta = {'dateadded': datetime.fromtimestamp(favorite_item['added']).strftime('%Y-%m-%d %H:%M:%S')}
@@ -199,7 +195,7 @@ def show_favorites(title, pluginurl, pluginhandle, pluginquery, default_fanart, 
 			        'licenseFilter': lib_joyn().get_license_filter()
 			})
 
-			if tvshow_data.get('page').get('series', None) is not None:
+			if tvshow_data.get('page') is not None and tvshow_data.get('page').get('series', None) is not None:
 				for season in tvshow_data.get('page').get('series').get('allSeasons'):
 					if favorite_item['season_id'] == season['id'] and season['numberOfEpisodes'] > 0:
 						season_metadata = lib_joyn().get_metadata(tvshow_data.get('page').get('series'), 'TVSHOW')
@@ -225,7 +221,7 @@ def show_favorites(title, pluginurl, pluginhandle, pluginquery, default_fanart, 
 					'path': favorite_item['path'],
 					'licenseFilter': lib_joyn().get_license_filter()
 			})
-			if tvshow_data.get('page').get('series', None) is not None:
+			if tvshow_data.get('page') is not None and tvshow_data.get('page').get('series', None) is not None:
 				list_items.extend(get_list_items([tvshow_data.get('page').get('series')], additional_metadata=add_meta, override_fanart=default_fanart))
 
 		elif favorite_item.get('block_id', None) is not None:
@@ -249,7 +245,7 @@ def show_favorites(title, pluginurl, pluginhandle, pluginquery, default_fanart, 
 
 		elif favorite_item.get('channel_id', None) is not None:
 			channel_data = lib_joyn().get_graphql_response('CHANNEL', {'path': favorite_item.get('channel_path')})
-			if channel_data.get('page') is not None:
+			if channel_data.get('page') is not None and channel_data.get('page') is not None:
 				list_items.extend(get_list_items([channel_data.get('page')], additional_metadata=add_meta, override_fanart=default_fanart))
 
 		elif favorite_item.get('collection_id', None) is not None:
@@ -263,14 +259,20 @@ def show_favorites(title, pluginurl, pluginhandle, pluginquery, default_fanart, 
 
 		elif favorite_item.get('compilation_id', None) is not None:
 			compilation_data = lib_joyn().get_graphql_response('COMPILATION', {'path': favorite_item['compilation_path']})
-			if compilation_data.get('page', {}).get('compilation', None) is not None:
+			if compilation_data.get('page') is not None and compilation_data.get('page', {}).get('compilation', None) is not None:
 				compilation_data['page']['compilation'].update({'path': compilation_data['page']['path']})
 				list_items.extend(
 				        get_list_items([compilation_data['page']['compilation']], additional_metadata=add_meta, override_fanart=default_fanart))
 
 	if len(list_items) == 0:
+		from xbmcplugin import endOfDirectory
+		endOfDirectory(handle=pluginhandle, succeeded=False)
 		return xbmc_helper().notification(xbmc_helper().translation('WATCHLIST'),
 		                                  xbmc_helper().translation('MSG_NO_FAVS_YET'), default_icon)
+
+	addSortMethod(pluginhandle, SORT_METHOD_UNSORTED)
+	addSortMethod(pluginhandle, SORT_METHOD_LABEL)
+	addSortMethod(pluginhandle, SORT_METHOD_DATEADDED)
 
 	xbmc_helper().set_folder(list_items, pluginurl, pluginhandle, pluginquery, 'WATCHLIST', title)
 

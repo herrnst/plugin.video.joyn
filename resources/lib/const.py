@@ -470,7 +470,7 @@ CONST = {
             'OPERATION': 'ResumePositionsWithToken',
             'REQUIRED_VARIABLES': ['ids'],
             'BOOKMARKS': True,
-            'HASH': 'b143dd251e82a09f9e0665ff21d5e285bc414e43567163d608adc9af71ad1f57',
+            'HASH': '362a1247c64705097a83a48dc5fb99a29dd573fe276f0b2fb91e50c165752e0b',
         },
 
         'SET_RESUME_POSITION': {

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.joyn" name="Joyn" version="2.95.5.2" provider-name="knaerzche, Maven, nst">
+<addon id="plugin.video.joyn" name="Joyn" version="2.95.5.3" provider-name="knaerzche, Maven, nst">
 	<requires>
 		<import addon="inputstream.adaptive" version="2.5.0"/>
 		<import addon="script.module.inputstreamhelper" version="0.4.4"/>
@@ -33,13 +33,13 @@
 			<screenshot>resources/media/screenshot03.jpg</screenshot>
 		</assets>
 		<news>
-v2.95.5.2
-- fixed config init and playback
-- updated tvshow operation and operation hashes
-- fixed error when content for last seen or favorites is no longer available
-- updated operation hashes
-- fixed login (thanks @easy4me)
-- added missing import
+v2.95.5.3
+- get rid of changelog.txt
+- fixed sending empty post data with Python 2
+- refactoring
+- fixed reference error
+- fixed and improved login flow
+- fixed login (thanks easy4me again)
 		</news>
 	</extension>
 </addon>

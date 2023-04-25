@@ -74,18 +74,10 @@
 		<setting type="sep"/>
 		<setting label="30135" type="select" id="joyn_platform" values="android|web|ios" default="web"/>
 		<setting type="sep"/>
-		<setting label="30357" type="bool" id="fixup_vod" default="true"/>
-		<setting label="30358" type="bool" id="fixup_live" default="true"/>
-		<setting label="30359" type="bool" id="force_local_manifest" default="false"/>
-		<setting type="sep"/>
 		<setting label="30101" type="bool" id="checkdrmcert" default="false"/>
 		<setting type="sep"/>
 		<setting label="30130" type="bool" id="force_playready" default="false" enable="System.Platform.Android"/>
 		<setting type="sep"/>
 		<setting label="30138" type="bool" id="force_clean_all_files" default="false"/>
-		<setting type="sep"/>
-		<setting label="30141" type="bool" id="fix_livestream_audio_sync" default="true"/>
-		<setting label="30142" type="slider" id="livestream_total_length" enable="eq(-1,true)" range="60,1,1200"  default="882" option="int" subsetting="true"/>
-		<setting label="30143" type="slider" id="livestream_offset" enable="eq(-2,true)"  range="12,1,60" default="14"  optione="int" subsetting="true"/>
 	</category>
 </settings>

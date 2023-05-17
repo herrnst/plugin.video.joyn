@@ -1,7 +1,5 @@
 <settings>
 	<category label="30000">
-		<setting label="30105" type="select" id="country" lvalues="30106|30107" default="0"/>
-		<setting type="sep"/>
 		<setting label="30104" type="action" id="clear_cache" action="RunPlugin(plugin://plugin.video.joyn/?mode=clear_cache)" option="close"/>
 		<setting type="sep"/>
 		<setting label="30127" type="bool" id="disable_foldercache" default="false"/>
@@ -77,7 +75,5 @@
 		<setting label="30101" type="bool" id="checkdrmcert" default="false"/>
 		<setting type="sep"/>
 		<setting label="30130" type="bool" id="force_playready" default="false" enable="System.Platform.Android"/>
-		<setting type="sep"/>
-		<setting label="30138" type="bool" id="force_clean_all_files" default="false"/>
 	</category>
 </settings>

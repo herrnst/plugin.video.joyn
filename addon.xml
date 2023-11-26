@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.joyn" name="Joyn" version="2.96.5.4" provider-name="knaerzche, Maven, nst">
+<addon id="plugin.video.joyn" name="Joyn" version="2.96.5.6" provider-name="knaerzche, Maven, nst">
 	<requires>
 		<import addon="inputstream.adaptive" version="2.5.0"/>
 		<import addon="script.module.inputstreamhelper" version="0.4.4"/>
@@ -33,11 +33,13 @@
 			<screenshot>resources/media/screenshot03.jpg</screenshot>
 		</assets>
 		<news>
-v2.96.5.4
-- changed regex for x-api-key to fix invalid key error
-- updated operation hashes
-- fixed: content is not displayed for Plus accounts
-- fixed: not all channels are displayed in the media library
+v2.96.5.6
+- fixed: API Key invalid
+- chore: updated hashes and consts
+- feat: support for Austria
+- fixed: read entitlementBaseUrl and playbackApiBaseUrl from const
+- cleanup
+- fixed: x-api-key could not be extracted
 		</news>
 	</extension>
 </addon>

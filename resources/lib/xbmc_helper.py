@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime, timedelta
-from distutils.version import LooseVersion
 from io import open as io_open
 from os.path import exists, join
 from time import mktime
@@ -52,7 +51,7 @@ class xbmc_helper(Singleton):
             from xbmcaddon import Addon
             _kodi_python_version = Addon('xbmc.python').getAddonInfo('version')
             self.log_debug('Detected kodi.python version {}', _kodi_python_version)
-            self.kodi_python_version = LooseVersion(_kodi_python_version)
+            self.kodi_python_version = self.parse_version(_kodi_python_version)
         except Exception as e:
             self.log_notice('Could not detect kodi.python version: {}', e)
             pass
@@ -61,7 +60,7 @@ class xbmc_helper(Singleton):
             _kodi_version = getInfoLabel('System.BuildVersion')
             self.log_debug('Detected kodi version: {}', _kodi_version)
             self.kodi_version = int(_kodi_version.split('.')[0])
-            self.kodi_loose_version = LooseVersion(_kodi_version)
+            self.kodi_loose_version = self.parse_version(_kodi_version)
         except Exception as e:
             self.log_notice('Could not detect kodi version version: {}', e)
             pass
@@ -69,6 +68,15 @@ class xbmc_helper(Singleton):
 
     def __del__(self):
         self.addon = None
+
+
+    def parse_version(self, version):
+        try:
+            from packaging.version import parse
+            return parse(version)
+        except ImportError:
+            from distutils.version import LooseVersion  # pylint: disable=deprecated-module
+            return LooseVersion(version)
 
 
     def get_addon(self):
@@ -467,7 +475,7 @@ class xbmc_helper(Singleton):
 
 
     def get_looseversion(self, version):
-        return LooseVersion(version)
+        return self.parse_version(version)
 
 
     def set_videoinfo(self, listitem, infolabels):

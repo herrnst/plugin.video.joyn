@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.joyn" name="Joyn" version="2.96.5.7" provider-name="knaerzche, Maven, nst">
+<addon id="plugin.video.joyn" name="Joyn" version="2.96.5.8" provider-name="knaerzche, Maven, nst">
 	<requires>
 		<import addon="inputstream.adaptive" version="2.5.0"/>
 		<import addon="script.module.inputstreamhelper" version="0.4.4"/>
@@ -32,10 +32,12 @@
 			<screenshot>resources/media/screenshot03.jpg</screenshot>
 		</assets>
 		<news>
-v2.96.5.7
-- fixed: logindata encryption/decryption
+v2.96.5.8
+- wrap LooseVersion and prefer packaging.version.parse()
 - chore: updated hashes
-- fixed: not all content is displayed for plus accounts
+- fixed: config init
+- feat: support for Switzerland
+- chore: updated constants
 		</news>
 	</extension>
 </addon>
